@@ -4,6 +4,7 @@ OUTPUT_FILE = OpenA2FirmwareSpecification.md
 PDF_OUTPUT = OpenA2FirmwareSpecification.pdf
 TEMP_DIR = tmp
 SRC_DIR = src
+TITLE_PAGE = $(SRC_DIR)/title_page.md
 INTRODUCTION = $(SRC_DIR)/introduction.md
 SUMMARY = $(SRC_DIR)/summary_of_firmware_entry_points.md
 ZERO_PAGE_DEFS = $(SRC_DIR)/zero_page_definitions.md
@@ -16,8 +17,9 @@ DETAILED_ENTRY_POINTS_TMP = $(TEMP_DIR)/detailed_firmware_entry_points_combined.
 DISK_ROM_SECTION = $(SRC_DIR)/diskrom_section.md
 
 MONITOR_USER_INTERFACE = $(SRC_DIR)/monitor_user_interface.md
+DISK_ROM_DETAILED = $(SRC_DIR)/DiskROM.md
 # List of all individual routine files in the src directory
-ROUTINE_FILES = $(sort $(filter-out $(INTRODUCTION) $(SUMMARY) $(ZERO_PAGE_DEFS) $(NON_ZERO_PAGE_DEFS) $(ESCAPE_SEQUENCES) $(BOOT_SEQUENCE_OVERVIEW) $(BOOT_ROM_IDENTIFICATION) $(MONITOR_USER_INTERFACE) $(DISK_ROM_SECTION), $(wildcard $(SRC_DIR)/*.md)))
+ROUTINE_FILES = $(sort $(filter-out $(TITLE_PAGE) $(INTRODUCTION) $(SUMMARY) $(ZERO_PAGE_DEFS) $(NON_ZERO_PAGE_DEFS) $(ESCAPE_SEQUENCES) $(BOOT_SEQUENCE_OVERVIEW) $(BOOT_ROM_IDENTIFICATION) $(MONITOR_USER_INTERFACE) $(DISK_ROM_SECTION) $(DISK_ROM_DETAILED), $(wildcard $(SRC_DIR)/*.md)))
 
 .PHONY: all clean pdf markdown
 
@@ -27,12 +29,16 @@ markdown: $(OUTPUT_FILE)
 
 pdf: $(PDF_OUTPUT)
 
-$(OUTPUT_FILE): $(INTRODUCTION) $(SUMMARY) $(ZERO_PAGE_DEFS) $(NON_ZERO_PAGE_DEFS) $(ESCAPE_SEQUENCES) $(BOOT_SEQUENCE_OVERVIEW) $(BOOT_ROM_IDENTIFICATION) $(MONITOR_USER_INTERFACE) $(DETAILED_ENTRY_POINTS_HEADER) $(DETAILED_ENTRY_POINTS_TMP) $(DISK_ROM_SECTION)
+$(OUTPUT_FILE): $(TITLE_PAGE) $(INTRODUCTION) $(SUMMARY) $(ZERO_PAGE_DEFS) $(NON_ZERO_PAGE_DEFS) $(ESCAPE_SEQUENCES) $(BOOT_SEQUENCE_OVERVIEW) $(BOOT_ROM_IDENTIFICATION) $(MONITOR_USER_INTERFACE) $(DETAILED_ENTRY_POINTS_HEADER) $(DETAILED_ENTRY_POINTS_TMP) $(DISK_ROM_SECTION) $(DISK_ROM_DETAILED)
 	pandoc --standalone \
 		--number-sections \
+		--toc \
+		--toc-depth=2 \
 		--from=markdown-tex_math_dollars \
 		--to=gfm \
+		--lua-filter=clean-headings-for-toc.lua \
 		--lua-filter=pandoc-raw-html.lua \
+		$(TITLE_PAGE) \
 		$(INTRODUCTION) \
 		$(SUMMARY) \
 		$(ZERO_PAGE_DEFS) \
@@ -44,6 +50,7 @@ $(OUTPUT_FILE): $(INTRODUCTION) $(SUMMARY) $(ZERO_PAGE_DEFS) $(NON_ZERO_PAGE_DEF
 		$(DETAILED_ENTRY_POINTS_HEADER) \
 		$(DETAILED_ENTRY_POINTS_TMP) \
 		$(DISK_ROM_SECTION) \
+		$(DISK_ROM_DETAILED) \
 		-o $(OUTPUT_FILE)
 
 $(PDF_OUTPUT): $(OUTPUT_FILE)

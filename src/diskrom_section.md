@@ -47,5 +47,5 @@ In addition to the main system firmware documented in previous sections, Apple I
 
 ---
 
-**For detailed technical specification of the Disk II ROM, see [DiskROM.md](./DiskROM.md).**
+**For detailed technical specification of the Disk II ROM, see [Disk II Controller ROM Specification](#disk-ii-controller-rom-specification) below.**
 

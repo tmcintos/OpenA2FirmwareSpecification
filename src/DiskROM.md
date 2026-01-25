@@ -1,6 +1,6 @@
-# Disk II Controller ROM Specification
+## Disk II Controller ROM Specification
 
-## Overview
+### Overview
 
 The Disk II Controller ROM is located at the slot-relative address $Cn00 (where n is the slot number, typically slot 6 giving $C600). This 256-byte ROM contains the boot loader ("BOOT0") that initializes disk operations and loads the secondary boot loader (BOOT1) from disk into memory.
 
@@ -11,15 +11,15 @@ The Disk II Controller ROM is located at the slot-relative address $Cn00 (where 
 
 ---
 
-## Architecture & Memory Layout
+### Architecture & Memory Layout
 
-### ROM Address Space
+#### ROM Address Space
 - **Base Address:** $Cn00 (where n = slot number, 1-7)
 - **Typical Slot:** 6 (address $C600)
 - **Size:** 256 bytes ($C600-$C6FF)
 - **Entry Point:** $C600 (when selected as boot ROM)
 
-### Code Organization
+#### Code Organization
 ```
 $C600-$C602   Initialization & setup
 $C603-$C650   6+2 decoder table generation
@@ -31,9 +31,9 @@ $C6FC-$C6FF   Spare bytes
 
 ---
 
-## Hardware Interface
+### Hardware Interface
 
-### IWM (Integrated Woz Machine) Registers
+#### IWM (Integrated Woz Machine) Registers
 
 The Disk II controller uses the IWM chip for low-level disk operations. Access is via memory-mapped I/O in the slot I/O area ($C000-$C0FF).
 
@@ -86,7 +86,7 @@ STA $C089,X     ; Store to appropriate slot's motor-on register
 
 This allows the ROM to work in any slot without hardcoding addresses. Absolute addressing (e.g., `LDA $C680`) would restrict the ROM to a specific slot.
 
-### I/O Data Ports
+#### I/O Data Ports
 
 | Address | Slot-Relative | Name | Direction | Function |
 |---------|---|---|---|---|
@@ -99,7 +99,7 @@ This allows the ROM to work in any slot without hardcoding addresses. Absolute a
 - **Reading:** Disk controller places bytes on data bus; 6502 reads via indexed addressing
 - **Writing:** 6502 writes via indexed addressing; controller accepts only on synchronized clock pulses
 
-### Logic State Sequencer (CRITICAL for Write Operations)
+#### Logic State Sequencer (CRITICAL for Write Operations)
 
 The disk controller includes a hardware-based **logic state sequencer** that must be synchronized with the software write loop. This is essential for correct disk write operations.
 
@@ -148,13 +148,13 @@ This sequence:
 2. Resets the sequencer to its idle state for the next operation
 3. Prepares for the next read or write sequence
 
-### Firmware ROM References
+#### Firmware ROM References
 
 The DISK ROM calls or references:
 - **$FCA8** [MON\_WAIT] - Delay routine for timing-critical operations
 - **$FF58** [MON\_IORTS] - System identification / slot detection
 
-### Slot Detection Using IORTS
+#### Slot Detection Using IORTS
 
 The Disk II ROM does not require knowledge of which slot it occupies; instead, it can determine its slot at runtime by calling [IORTS](#iorts-ff58) ($FF58). This routine provides a generic mechanism for peripheral ROMs to identify their installed slot:
 
@@ -192,9 +192,9 @@ This elegant mechanism allows peripheral ROMs to be completely slot-independent;
 
 ---
 
-## Memory Layout
+### Memory Layout
 
-### Data Buffers
+#### Data Buffers
 
 | Address | Size | Name | Purpose |
 |---------|------|------|---------|
@@ -205,7 +205,7 @@ This elegant mechanism allows peripheral ROMs to be completely slot-independent;
 | $03D6-$07FF | ~1.5KB | (available) | General purpose RAM |
 | $0800-$0BFF | 1024 | BOOT1 | Secondary boot loader code |
 
-### Zero-Page Variables (DISK ROM use)
+#### Zero-Page Variables (DISK ROM use)
 
 | Address | Name | Purpose |
 |---------|------|---------|
@@ -218,9 +218,9 @@ This elegant mechanism allows peripheral ROMs to be completely slot-independent;
 
 ---
 
-## Entry Points
+### Entry Points
 
-### ENTRY ($C600)
+#### ENTRY ($C600)
 
 **Description:**
 
@@ -280,7 +280,7 @@ The main boot entry point. When invoked (typically via reset vector jumping to $
 
 ---
 
-### ReadSector ($C65C)
+#### ReadSector ($C65C)
 
 **Description:**
 
@@ -342,9 +342,9 @@ Core disk read routine. Reads a single 256-byte sector from the currently select
 
 ---
 
-## 6+2 Encoding & Decoding
+### 6+2 Encoding & Decoding
 
-### Why 6+2 Encoding?
+#### Why 6+2 Encoding?
 
 The original Disk II drive hardware imposes constraints on allowable byte patterns:
 - **Cannot have high bit clear:** All data bytes must have bit 7 set ($80-$FF range)
@@ -360,7 +360,7 @@ These constraints allow only 64 valid byte values from the 256-byte range. To en
 - Result: 4 bytes of encoded data from 3 bytes of actual data
 - 256 bytes input → 342 bytes encoded output (256 × 4/3)
 
-### Decoder Table Generation
+#### Decoder Table Generation
 
 The DISK ROM generates the decoder table at runtime (code $C603-$C650):
 
@@ -376,9 +376,9 @@ The DISK ROM generates the decoder table at runtime (code $C603-$C650):
 
 ---
 
-## Boot Sequence
+### Boot Sequence
 
-### Typical Boot Flow
+#### Typical Boot Flow
 
 ```
 System Power-On
@@ -406,7 +406,7 @@ BOOT1 Code Execution
     └── Transfer to main program or monitor
 ```
 
-### Sector Loading
+#### Sector Loading
 
 The DISK ROM reads disk sectors and stores them in the BOOT1 buffer ($0800-$0BFF range):
 
@@ -416,7 +416,7 @@ The DISK ROM reads disk sectors and stores them in the BOOT1 buffer ($0800-$0BFF
   - BOOT1 code includes its own size as first byte
   - This allows variable-sized boot code
 
-### IWM Timing
+#### IWM Timing
 
 Critical timing operations use the MON\_WAIT routine ($FCA8):
 - Provides delay for stepper motor settling
@@ -425,22 +425,22 @@ Critical timing operations use the MON\_WAIT routine ($FCA8):
 
 ---
 
-## Slot Selection & Addressing
+### Slot Selection & Addressing
 
-### Slot-Relative Addressing
+#### Slot-Relative Addressing
 
 The DISK ROM is slot-independent. When placed in slot n:
 - Entry address: $Cn00 (not $C600)
 - IWM registers accessed: $C080 + (n << 4)
 - Invoked as: `JMP $Cn01` (relative jump to actual $C600 entry)
 
-### Typical Slot 6 Configuration
+#### Typical Slot 6 Configuration
 
 - **ROM Address:** $C600-$C6FF
 - **IWM Base:** $C600 (phasing registers at $C680-$C68F)
 - **Slot Index (X register):** $60 (6 << 4)
 
-### Multi-Slot Support
+#### Multi-Slot Support
 
 The Disk II controller can be placed in any slot (typically 6 or 5):
 - Slot 5: ROM at $C500-$C5FF, IWM at $C580-$C58F
@@ -449,23 +449,23 @@ The Disk II controller can be placed in any slot (typically 6 or 5):
 
 ---
 
-## Technical Implementation Notes
+### Technical Implementation Notes
 
-### 6502 Optimization Techniques
+#### 6502 Optimization Techniques
 
 1. **Self-Modifying Code:** Some tight loops modify branch targets for efficiency
 2. **Indexed Addressing:** Heavy use of `LDA addr,X` for slot-relative hardware access
 3. **Indirect Addressing:** `LDA (data_ptr),Y` for buffer access
 4. **Branch Optimization:** Careful branch placement to avoid page boundary crosses
 
-### Disk Timing
+#### Disk Timing
 
 - **Byte Timing:** ~32 microseconds per byte at 1MHz 6502
 - **Seek Timing:** ~3ms per track (stepper motor speed)
 - **Track 0 Seek:** Blind seek (~200ms worst case)
 - **Sector Search:** Variable, depends on disk rotation
 
-### Error Handling
+#### Error Handling
 
 The DISK ROM has minimal error handling:
 - **Infinite Retry:** If sector not found, continues searching same track
@@ -474,21 +474,21 @@ The DISK ROM has minimal error handling:
 
 ---
 
-## Cross-Reference
+### Cross-Reference
 
-### Related Firmware Routines
+#### Related Firmware Routines
 
 - [MON\_WAIT] ($FCA8) - Delay routine (referenced by Disk II ROM)
 - [MON\_IORTS] ($FF58) - Slot detection routine (referenced by Disk II ROM)
 - **BOOT1** - Secondary bootstrap code (loaded by DISK ROM, not documented here)
 
-### Related Documentation
+#### Related Documentation
 
 - **IWM Hardware:** See Apple Disk II Technical Manual
 - **6+2 Encoding:** See Beneath Apple ProDOS (Weiss & Luther)
 - **Boot Sequence:** See AppleWin emulator documentation
 
-### Memory Locations
+#### Memory Locations
 
 - [TWOS_BUFFER] ($0300-$0355) - 2-bit chunk buffer
 - [CONV_TAB] ($0356-$03D5) - 6+2 decoder table
@@ -496,9 +496,9 @@ The DISK ROM has minimal error handling:
 
 ---
 
-## Implementation Considerations
+### Implementation Considerations
 
-### For Emulator Development
+#### For Emulator Development
 
 Emulating the DISK ROM requires:
 1. **IWM Hardware Emulation:** Stepper motor, drive motor, read/write head
@@ -506,7 +506,7 @@ Emulating the DISK ROM requires:
 3. **6+2 Encoding:** Decode sector data correctly
 4. **Timing:** Approximate boot timing (~1-2 seconds)
 
-### For Clean-Room Implementation
+#### For Clean-Room Implementation
 
 A clean-room DISK ROM would need:
 1. **IWM Interface:** Understanding of each hardware register's function
@@ -517,7 +517,7 @@ A clean-room DISK ROM would need:
 
 ---
 
-## References
+### References
 
 **Source File:** `C600ROM Disassembly.html` (in documentation directory)
 
@@ -529,7 +529,7 @@ A clean-room DISK ROM would need:
 
 ---
 
-## Notes
+### Notes
 
 - This documentation covers the standard Disk II controller ROM found in Apple II, II+, IIe, and IIc systems
 - Enhanced Disk II controllers (third-party) may have different ROM code
