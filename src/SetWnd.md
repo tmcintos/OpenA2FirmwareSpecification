@@ -15,7 +15,7 @@ This routine sets the text window to full screen width, with its bottom at the s
 **Output:**
 
 *   **Registers:**
-    *   A: Contains the low byte of the calculated base address for the current line ([BASL](#basl)).
+    *   A: Contains the low byte of the calculated base address for the current line ([BASL](#basl-bash)).
     *   X: Preserved.
     *   Y: Undefined.
     *   P: Undefined.

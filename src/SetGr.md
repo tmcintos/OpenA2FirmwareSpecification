@@ -15,7 +15,7 @@ This routine sets the display to mixed graphics mode, clears the graphics portio
 **Output:**
 
 *   **Registers:**
-    *   A: Contains the low byte of the calculated base address for the text line (for the four-line text window) ([BASL](#basl)).
+    *   A: Contains the low byte of the calculated base address for the text line (for the four-line text window) ([BASL](#basl-bash)).
     *   X: Preserved.
     *   Y: Undefined.
     *   P: Undefined.

@@ -15,7 +15,7 @@ This routine performs a vertical tab to the line specified in the A register ($0
 **Output:**
 
 *   **Registers:**
-    *   A: Contains the low byte of the calculated base address for the text line ([BASL](#basl)).
+    *   A: Contains the low byte of the calculated base address for the text line ([BASL](#basl-bash)).
     *   X: Preserved.
     *   Y: Undefined.
     *   P: Undefined.

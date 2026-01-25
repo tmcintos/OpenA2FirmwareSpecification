@@ -28,4 +28,4 @@ This routine generates a 1 kHz square-wave tone by rapidly toggling the system s
 **See also:**
 
 *   [Bell1](#bell1-fbdd)
-*   [Bell1_2](#bell1-2-fbe2)
+*   [Bell1_2](#bell1_2-fbe2)

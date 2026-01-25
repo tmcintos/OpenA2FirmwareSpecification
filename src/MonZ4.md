@@ -33,4 +33,4 @@ This routine is an alternative entry point to the System Monitor, similar to [Mo
 *   [GetLnZ](#getlnz-fd67)
 *   [ZMode](#zmode-ffc7)
 *   [INBUF](#inbuf)
-*   [Monitor Mode Byte](#monitor-mode-byte)
+*   [MODE](#mode)

@@ -38,7 +38,7 @@
 | [Init](#init-fb2f) | $FB2F | Initializes text display to show text Page 1 and full-screen text window. |
 | [InPort](#inport-fe8b) | $FE8B | Configures system's input links to a designated input port. |
 | [InsDs2](#insds2-f88e) | $F88E | Determines length (minus 1) of 6502 instruction from opcode in A. |
-| [InsDsl-2](#insdsl-2-f88c) | $F88C | Loads A with an opcode then calls InsDs2 to calculate its length. |
+| [InsDsl-2](#insds1-2-f88c) | $F88C | Loads A with an opcode then calls InsDs2 to calculate its length. |
 | [InstDsp](#instdsp-f8d0) | $F8D0 | Disassembles and prints instruction pointed to by PCL/PCH to standard output. |
 | [IORTS](#iorts-ff58) | $FF58 | Contains an RTS instruction, used by peripheral cards for slot identification. |
 | [KbdWait](#kbdwait-fb88) | $FB88 | Pauses execution until a key is pressed; handles Control-C. |

@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine converts an ASCII code representing a hexadecimal digit into its corresponding hexadecimal number. This process is initiated by [NxtChr ($FFAD)](#nxtchr-ffad), which preprocesses the ASCII code (performing an exclusive OR with $B0 and potentially adding $88 for characters A-F) before passing it in the A register to `Dig`. `Dig` then shifts the conditioned character bit-by-bit into the zero-page locations [A2L](#a2l) ($3E) and [A2H](#a2h) ($3F), effectively storing the hexadecimal value. Control is then passed back to [NxtChr ($FFAD)](#nxtchr-ffad). This combination of [NxtChr ($FFAD)](#nxtchr-ffad) and `Dig` routines is essential for converting user-entered ASCII digits into numerical values.
+This routine converts an ASCII code representing a hexadecimal digit into its corresponding hexadecimal number. This process is initiated by [NxtChr ($FFAD)](#nxtchr-ffad), which preprocesses the ASCII code (performing an exclusive OR with $B0 and potentially adding $88 for characters A-F) before passing it in the A register to `Dig`. `Dig` then shifts the conditioned character bit-by-bit into the zero-page locations [A2L](#a2l-a2h) ($3E) and [A2H](#a2l-a2h) ($3F), effectively storing the hexadecimal value. Control is then passed back to [NxtChr ($FFAD)](#nxtchr-ffad). This combination of [NxtChr ($FFAD)](#nxtchr-ffad) and `Dig` routines is essential for converting user-entered ASCII digits into numerical values.
 
 **Input:**
 

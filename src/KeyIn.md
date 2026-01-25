@@ -32,5 +32,5 @@ This routine is the primary keyboard input subroutine. It reads a keypress direc
 **See also:**
 
 *   [RNDL/RNDH](#rndl-rndh)
-*   [RDKEY ($FDC6)](#rdkey-fdc6)
+*   [RDKEY ($FDC6)](#rdkey-fd0c)
 *   [FD10 ($FD10)](#fd10-fd10)

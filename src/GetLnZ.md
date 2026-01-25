@@ -11,7 +11,7 @@ This is the primary routine for reading a complete line of keyboard input. It be
 
 *   **Registers:**
     *   A: The ASCII code of the prompt character to be displayed. (If no prompt is desired, A should be N/A or a value that indicates no display).
-    *   X: N/A (initialized internally, or by calling routines like [GetLn](#getln-fd6f) or [GetLn1](#getln1-fd6f)).
+    *   X: N/A (initialized internally, or by calling routines like [GetLn](#getln1-fd6f) or [GetLn1](#getln1-fd6f)).
     *   Y: N/A
 *   **Memory:**
     *   [PROMPT](#prompt) (address $33): The ASCII character to use as a prompt.
@@ -54,7 +54,7 @@ This is the primary routine for reading a complete line of keyboard input. It be
 *   [CROut](#crout-fd8e)
 *   [RdKey](#rdkey-fd0c)
 *   [RdChar](#rdchar-fd35)
-*   [GetLn](#getln-fd6f)
+*   [GetLn](#getln1-fd6f)
 *   [GetLn1](#getln1-fd6f)
 *   [INBUF](#inbuf)
 *   [PROMPT](#prompt)

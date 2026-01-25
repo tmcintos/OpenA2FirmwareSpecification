@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine clears the System Monitor's operational mode flag by storing `$00` into the [Monitor Mode Byte](#monitor-mode-byte). This byte dictates how the Monitor interprets hexadecimal numbers in input.
+This routine clears the System Monitor's operational mode flag by storing `$00` into the [MODE](#mode). This byte dictates how the Monitor interprets hexadecimal numbers in input.
 
 **Input:** None.
 
@@ -14,7 +14,7 @@ This routine clears the System Monitor's operational mode flag by storing `$00` 
     *   Y: Preserved
     *   P: Undefined
 *   **Memory:**
-    *   [Monitor Mode Byte](#monitor-mode-byte): The Monitor's mode flag is set to `$00`.
+    *   [MODE](#mode): The Monitor's mode flag is set to `$00`.
 
 **Side Effects:**
 
@@ -23,4 +23,4 @@ This routine clears the System Monitor's operational mode flag by storing `$00` 
 **See also:**
 
 *   [MonZ](#monz-ff69)
-*   [Monitor Mode Byte](#monitor-mode-byte)
+*   [MODE](#mode)

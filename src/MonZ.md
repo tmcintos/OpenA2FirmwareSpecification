@@ -21,7 +21,7 @@ This routine is the primary entry point for the System Monitor, often called via
     *   P: Flags affected by internal operations.
 *   **Memory:**
     *   [INBUF](#inbuf): Contains the user's input line.
-    *   [Monitor Mode Byte](#monitor-mode-byte): Cleared to `$00` by [ZMode](#zmode-ffc7).
+    *   [MODE](#mode): Cleared to `$00` by [ZMode](#zmode-ffc7).
 
 **Side Effects:**
 
@@ -36,4 +36,4 @@ This routine is the primary entry point for the System Monitor, often called via
 *   [ZMode](#zmode-ffc7)
 *   [INBUF](#inbuf)
 *   [PROMPT](#prompt)
-*   [Monitor Mode Byte](#monitor-mode-byte)
+*   [MODE](#mode)

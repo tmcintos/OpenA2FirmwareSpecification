@@ -28,5 +28,5 @@ This routine generates a brief 1 kHz tone through the system speaker for approx.
 
 **See also:**
 
-*   [Bell1_2](#bell1-2-fbe2)
+*   [Bell1_2](#bell1_2-fbe2)
 *   [Bell2](#bell2-fbe4)

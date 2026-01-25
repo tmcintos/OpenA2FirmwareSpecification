@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine stores the value from the A register into the zero-page location [A2L](#a2l). It then implicitly transfers control to the internal `INPRT ($FE8D)` routine. The `INPRT` routine is responsible for setting the system's input hooks ([KSWL/KSWH](#kswl-kswh)) based on the value found in [A2L](#a2l), effectively allowing the input source to be directed to a specified port.
+This routine stores the value from the A register into the zero-page location [A2L](#a2l-a2h). It then implicitly transfers control to the internal `INPRT ($FE8D)` routine. The `INPRT` routine is responsible for setting the system's input hooks ([KSWL/KSWH](#kswl-kswh)) based on the value found in [A2L](#a2l-a2h), effectively allowing the input source to be directed to a specified port.
 
 **Input:**
 
@@ -20,17 +20,17 @@ This routine stores the value from the A register into the zero-page location [A
     *   Y: Modified by subsequent calls from `INPRT`.
     *   P: Flags affected.
 *   **Memory:**
-    *   [A2L](#a2l) (address $3E): Stored with the value from the A register.
+    *   [A2L](#a2l-a2h) (address $3E): Stored with the value from the A register.
     *   [KSWL/KSWH](#kswl-kswh) (address $38-$39): Updated by the `INPRT ($FE8D)` routine.
 
 **Side Effects:**
 
-*   Stores the input value from A to [A2L](#a2l).
+*   Stores the input value from A to [A2L](#a2l-a2h).
 *   Transfers control to the internal `INPRT ($FE8D)` routine, which then modifies the system's standard input hooks.
 
 **See also:**
 
 *   `INPRT ($FE8D)` (internal routine)
 *   [KSWL/KSWH](#kswl-kswh)
-*   [A2L](#a2l)
+*   [A2L](#a2l-a2h)
 *   [SetKbd](#setkbd-fe89)

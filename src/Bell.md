@@ -29,5 +29,5 @@ This routine transmits an ASCII bell character (`$87`) to the standard output by
 **See also:**
 
 *   [Bell1](#bell1-fbdd)
-*   [Bell1_2](#bell1-2-fbe2)
+*   [Bell1_2](#bell1_2-fbe2)
 *   [Bell2](#bell2-fbe4)

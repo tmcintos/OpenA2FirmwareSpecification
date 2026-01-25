@@ -26,4 +26,4 @@ This routine displays the contents of the microprocessor's registers and relevan
 
 **See also:**
 
-*   [Mon ($FF69)](#mon-ff69) (Monitor entry point)
+*   [Mon ($FF69)](#monz-ff69) (Monitor entry point)

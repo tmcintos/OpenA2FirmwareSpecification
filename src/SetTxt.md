@@ -22,7 +22,7 @@ During execution, SetTxt reads the following hardware soft switches (memory-mapp
 **Output:**
 
 *   **Registers:**
-    *   A: Contains the low byte of the calculated base address for the text line ([BASL](#basl)).
+    *   A: Contains the low byte of the calculated base address for the text line ([BASL](#basl-bash)).
     *   X: Preserved.
     *   Y: Undefined.
     *   P: Undefined.

@@ -14,7 +14,7 @@ This routine initializes the system by clearing the [STATUS](#status) zero-page 
 **Output:**
 
 *   **Registers:**
-    *   A: Contains the low byte of the calculated base address for the text line ([BASL](#basl)).
+    *   A: Contains the low byte of the calculated base address for the text line ([BASL](#basl-bash)).
     *   X: Undefined.
     *   Y: Undefined.
     *   P: Undefined.

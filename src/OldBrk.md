@@ -36,6 +36,6 @@ This routine serves as a break handler that prints information about the `BRK` i
 **See also:**
 
 *   [Break ($FA4C)](#break-fa4c) (Old 6502 break handler)
-*   [Mon ($FF69)](#mon-ff69) (Monitor entry point)
+*   [Mon ($FF69)](#monz-ff69) (Monitor entry point)
 *   [A5H](#a5h), [XREG](#xreg), [YREG](#yreg), [STATUS](#status), [SPNT](#spnt)
 *   [PCL/PCH](#pcl-pch)
