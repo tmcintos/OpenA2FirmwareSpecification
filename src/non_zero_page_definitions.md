@@ -11,11 +11,14 @@
 | $07FB | <a id="cursor"></a>CURSOR | Cursor type and status. | Defines the type of cursor displayed by input routines (e.g., block, checkerboard). |
 | $047B | <a id="oldch"></a>OLDCH | Old Horizontal Cursor Position. | Stores the previous horizontal cursor position; used in 80-column mode to track cursor movement. |
 | $057B | <a id="ourch"></a>OURCH | Our Horizontal Cursor Position. | Stores the current horizontal cursor position in 80-column mode; used internally by 80-column display routines. |
+| $05FB | <a id="ourcv"></a>OURCV | Our Vertical Cursor Position. | Stores the current vertical cursor position in 80-column mode; updated by NEWVTABZ and related routines. |
 | $067B | <a id="vfactv"></a>VFACTV | Video Firmware Active Flag. | Bit 7 = 0 when video firmware is inactive; used to test if 80-column card is active. |
 | $04FB | <a id="vmode"></a>VMODE | Video Mode Byte. | 80-column mode flag; used internally to track whether 80-column mode is enabled. |
 | $C000 | KBD | Keyboard Data Register. | Read: Returns last key pressed, with bit 7 set ($80 | ASCII code). Used for polling keyboard input. |
 | $C010 | KBDSTRB | Keyboard Strobe Register. | Read/Write: Reading clears the keyboard interrupt. Must be read to acknowledge keyboard input. |
+| $C01A | <a id="rdtext"></a>RDTEXT | Read Text Mode Soft Switch. | Software switch; reads as non-zero ($FF) if in text mode, zero if in graphics mode. Used to check current display mode. |
 | $0200 | <a id="inbuf"></a>INBUF | Monitor Input Buffer. | 128-byte buffer for storing user input lines, typically in the Monitor or command-line input routines. |
+| $CE1A | <a id="setx"></a>SETX | Set 40/80 Column Mode Entry Point. | ROM routine entry point at $CE1A; called to configure 40-column or 80-column text mode. |
 | $FE95 | OutPort | "PR#" Output Port Entry. | Routine entry point that selects the output port (character destination); used to redirect output to peripherals. |
 | $FFCC | CHRTBL | Monitor ASCII Command Table. | Table of ASCII characters corresponding to Monitor commands (e.g., 'G', 'X', 'A', 'L', 'S'). Located at fixed address for compatibility with external tools. |
 | $FFE3 | SUBTBL | Monitor Routine Offset Table. | Table of routine offsets corresponding to commands in CHRTBL; indices are paired with CHRTBL for command dispatch. |
