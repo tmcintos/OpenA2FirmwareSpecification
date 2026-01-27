@@ -18,7 +18,4 @@
 | $C000 | KBD | Keyboard Data Register. | Read: Returns last key pressed, with bit 7 set ($80 | ASCII code). Used for polling keyboard input. |
 | $C010 | KBDSTRB | Keyboard Strobe Register. | Read/Write: Reading clears the keyboard interrupt. Must be read to acknowledge keyboard input. |
 | $C01A | <a id="rdtext"></a>RDTEXT | Read Text Mode Soft Switch. | Software switch; reads as non-zero ($FF) if in text mode, zero if in graphics mode. Used to check current display mode. |
-| $CE1A | <a id="setx"></a>SETX | Set 40/80 Column Mode Entry Point. | ROM routine entry point at $CE1A; called to configure 40-column or 80-column text mode. |
-| $FE95 | OutPort | "PR#" Output Port Entry. | Routine entry point that selects the output port (character destination); used to redirect output to peripherals. |
 | $FFCC | CHRTBL | Monitor ASCII Command Table. | Table of ASCII characters corresponding to Monitor commands (e.g., 'G', 'X', 'A', 'L', 'S'). Located at fixed address for compatibility with external tools. |
-| $FFE3 | SUBTBL | Monitor Routine Offset Table. | Table of routine offsets corresponding to commands in CHRTBL; indices are paired with CHRTBL for command dispatch. |
