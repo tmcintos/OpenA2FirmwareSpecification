@@ -1,6 +1,4 @@
-## Peripheral Controller ROMs
-
-### Disk II Controller ROM
+### <a id="disk-ii-controller-rom-overview"></a>Disk II Controller ROM
 
 In addition to the main system firmware documented in previous sections, Apple II computers often include expansion cards for disk drive control. The most common is the **Disk II Controller Card** (pronounced "Disk Two"), which includes a 256-byte boot loader ROM.
 

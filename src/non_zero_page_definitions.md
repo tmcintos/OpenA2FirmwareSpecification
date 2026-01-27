@@ -1,4 +1,4 @@
-## <a id="non-zero-page-definitions"></a>Non-Zero-Page Memory Locations
+### <a id="other-variables"></a>Other Variables
 
 | Address | Label(s) | Description | Usage |
 |---|---|---|---|

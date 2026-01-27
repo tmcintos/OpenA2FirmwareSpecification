@@ -13,15 +13,16 @@ The specification enables:
 
 ### How to Use This Document
 
-This technical reference is organized into major sections:
+This technical reference is organized into logical sections reflecting the structure of the Apple II firmware:
 
-1. **Firmware Entry Points** - Complete documentation of all ROM routines, including input/output registers, memory effects, and calling conventions
-2. **Memory Locations** - Definitions of zero-page and non-zero-page memory locations used by firmware
-3. **Boot Sequence** - System initialization and boot ROM protocols
-4. **System Architecture** - Hardware interfaces and address modes
-5. **Disk II Controller** - Peripheral ROM specifications for the standard 5.25" floppy drive controller
+1. **Memory Locations** - Definitions of zero-page, RAM, and hardware register locations used by firmware
+2. **Boot Sequence and Initialization** - System startup, reset handling, and boot protocols
+3. **Monitor User Interface** - User-facing monitor commands and control character support
+4. **Detailed Firmware Entry Points** - Complete documentation of all system ROM routines with input/output contracts, memory effects, and internal dependencies
+5. **Peripheral Controller ROMs** - Boot ROM identification protocols and how peripheral devices extend system capabilities
+6. **Disk II Controller ROM Specification** - Complete technical reference for the standard 5.25" disk controller ROM
 
-Each routine entry includes:
+Within each routine entry, you will find:
 
 - **Input Requirements** - Register and memory values expected on entry
 - **Output Guarantees** - Register and memory values upon exit

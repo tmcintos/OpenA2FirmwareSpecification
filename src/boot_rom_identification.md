@@ -1,8 +1,8 @@
-## Boot ROM Identification Protocols
+### <a id="boot-rom-identification-protocols"></a>Boot ROM Identification Protocols
 
 Peripheral ROM devices must be properly identified by the system firmware and operating systems to be recognized as boot devices. This section documents the identification protocols used across different Apple II systems and operating environments.
 
-### Overview
+#### Overview
 
 The Apple II family has used three primary boot ROM identification schemes:
 
@@ -12,7 +12,7 @@ The Apple II family has used three primary boot ROM identification schemes:
 
 The protocol used depends on the target operating system and system generation.
 
-### Protocol 1: Original Apple II DOS
+#### Protocol 1: Original Apple II DOS
 
 ### Identification Method
 
@@ -33,7 +33,7 @@ The protocol used depends on the target operating system and system generation.
 
 ---
 
-### Protocol 2: Pascal 1.1 Firmware Protocol
+#### Protocol 2: Pascal 1.1 Firmware Protocol
 
 ### ID Byte Structure
 
@@ -107,7 +107,7 @@ The IIc includes built-in ports that follow the Pascal 1.1 protocol. Different R
 
 ---
 
-### Protocol 3: ProDOS Block Device Protocol
+#### Protocol 3: ProDOS Block Device Protocol
 
 ### Overview
 
@@ -190,7 +190,7 @@ SmartPort is an extended protocol providing:
 
 ---
 
-### Target System and Protocol Mapping
+#### Target System and Protocol Mapping
 
 | System | Primary Protocol | Secondary Protocol | Boot ROM Required |
 |--------|-----------------|-------------------|------------------|
@@ -202,7 +202,7 @@ SmartPort is an extended protocol providing:
 
 ---
 
-### Boot ROM Implementation Guidelines
+#### Boot ROM Implementation Guidelines
 
 ### For Original Apple II / II+
 
@@ -236,7 +236,7 @@ SmartPort is an extended protocol providing:
 
 ---
 
-### References
+#### References
 
 - **Apple II Technical Note #008: Pascal 1.1 Firmware Protocol ID Bytes**  
   https://mirrors.apple2.org.za/Apple%20II%20Documentation%20Project/Computers/Apple%20II/Apple%20II/Documentation/Misc%20%23008%20Pascal%20Protocol%20ID.pdf
