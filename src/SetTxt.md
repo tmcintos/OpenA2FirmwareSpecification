@@ -6,6 +6,7 @@ This routine configures the display for a full text window. It reads the current
 
 **Hardware Details:**
 During execution, SetTxt reads the following hardware soft switches (memory-mapped I/O locations):
+
 - `TXTSET` ($C051): Reads to set text mode (any read action enables text mode)
 - `TXTCLR` ($C050): Reads to clear text mode for graphics (any read action disables text mode)
 - `MIXSET` ($C053): Reads to enable mixed graphics/text display

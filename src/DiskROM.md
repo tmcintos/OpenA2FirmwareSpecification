@@ -68,10 +68,12 @@ Register Address = $C000 + (slot_number << 8) + register_offset
 ```
 
 Where:
+
 - `slot_number` = Slot number (1-7, typically 6)
 - `register_offset` = Register address offset ($80-$8F)
 
 **Examples for common slots:**
+
 - Slot 6 (typical): $C600 + $80 = $C680 (first phase control)
 - Slot 5: $C500 + $80 = $C580
 - Slot 1: $C100 + $80 = $C180
@@ -96,6 +98,7 @@ This allows the ROM to work in any slot without hardcoding addresses. Absolute a
 | $C08F + n*$100 | $8F | DATA_OUT | Write | Write data to disk (requires indexed addressing) |
 
 **Data Transfer:**
+
 - **Reading:** Disk controller places bytes on data bus; 6502 reads via indexed addressing
 - **Writing:** 6502 writes via indexed addressing; controller accepts only on synchronized clock pulses
 
@@ -106,6 +109,7 @@ The disk controller includes a hardware-based **logic state sequencer** that mus
 **State Sequencer Timing Constraint:**
 
 The controller will accept write data ONLY on specific clock pulses:
+
 1. The clock pulse immediately AFTER the one that started the sequencer
 2. Then every fourth clock pulse thereafter
 
@@ -144,6 +148,7 @@ BMI WPROTECT        ; Branch if write protected (N flag set)
 ```
 
 This sequence:
+
 1. Checks if the disk is write-protected (returns with N flag set if protected)
 2. Resets the sequencer to its idle state for the next operation
 3. Prepares for the next read or write sequence
@@ -151,6 +156,7 @@ This sequence:
 #### Firmware ROM References
 
 The DISK ROM calls or references:
+
 - **$FCA8** [MON\_WAIT] - Delay routine for timing-critical operations
 - **$FF58** [MON\_IORTS] - System identification / slot detection
 
@@ -183,6 +189,7 @@ When a peripheral ROM is executing in slot n (at $Cn00-$CnFF), it can determine 
 **Why This Works:**
 
 When the firmware calls the peripheral ROM via `JMP (LOC0)` where LOC0 points to $Cn00, the ROM executes at address $Cn00-$CnFF. When the ROM calls `JSR $FF58` (IORTS):
+
 - The return address ($Cn00 + offset) is automatically pushed onto the 6502 stack
 - IORTS is just an RTS instruction that immediately returns
 - The peripheral ROM can read its own return address from the stack to determine n (the slot number)
@@ -268,6 +275,7 @@ The main boot entry point. When invoked (typically via reset vector jumping to $
     - TWOS_BUFFER ($0300-$0355): 6+2 conversion table generated
     - BOOT1 ($0800-$0BFF): Filled with bootstrap code from disk
     - Zero-page ($26, $2B, $3C-$41): Initialized for disk operations
+
 *   **Transfer:** Control jumps to $0801 (BOOT1 code)
 
 **Side Effects:**
@@ -315,6 +323,7 @@ Core disk read routine. Reads a single 256-byte sector from the currently select
     - A: undefined
     - X: slot index (slot_number << 4) 
     - Y: undefined
+
 *   **Memory:**
     - data_ptr ($26-$27): Must point to valid memory for 256 bytes
     - sector ($3D): Sector number to find and read (0-15)
@@ -328,6 +337,7 @@ Core disk read routine. Reads a single 256-byte sector from the currently select
     - A: Undefined
     - X: Preserved (slot index still set)
     - Y: Incremented to 0 (after processing all 256 bytes)
+
 *   **Memory:**
     - data_ptr+1 ($27): Incremented to next page
     - Sector data (256 bytes): Decoded and placed at address pointed by data_ptr
@@ -347,6 +357,7 @@ Core disk read routine. Reads a single 256-byte sector from the currently select
 #### Why 6+2 Encoding?
 
 The original Disk II drive hardware imposes constraints on allowable byte patterns:
+
 - **Cannot have high bit clear:** All data bytes must have bit 7 set ($80-$FF range)
 - **Cannot have consecutive zero bits:** Violates disk timing requirements
 - **Special markers excluded:** Bytes $D5, $AA reserved for address/data marks
@@ -365,6 +376,7 @@ These constraints allow only 64 valid byte values from the 256-byte range. To en
 The DISK ROM generates the decoder table at runtime (code $C603-$C650):
 
 **Algorithm:**
+
 1. For each value 0-63 (6-bit value):
    - Shift left and check for adjacent 1-bits
    - Combine with original, invert, and verify no three consecutive 0s
@@ -419,6 +431,7 @@ The DISK ROM reads disk sectors and stores them in the BOOT1 buffer ($0800-$0BFF
 #### IWM Timing
 
 Critical timing operations use the MON\_WAIT routine ($FCA8):
+
 - Provides delay for stepper motor settling
 - Synchronizes with disk rotation
 - Ensures reliable disk head positioning
@@ -430,6 +443,7 @@ Critical timing operations use the MON\_WAIT routine ($FCA8):
 #### Slot-Relative Addressing
 
 The DISK ROM is slot-independent. When placed in slot n:
+
 - Entry address: $Cn00 (not $C600)
 - IWM registers accessed: $C080 + (n << 4)
 - Invoked as: `JMP $Cn01` (relative jump to actual $C600 entry)
@@ -443,6 +457,7 @@ The DISK ROM is slot-independent. When placed in slot n:
 #### Multi-Slot Support
 
 The Disk II controller can be placed in any slot (typically 6 or 5):
+
 - Slot 5: ROM at $C500-$C5FF, IWM at $C580-$C58F
 - Slot 6: ROM at $C600-$C6FF, IWM at $C680-$C68F
 - Slot 7: ROM at $C700-$C7FF, IWM at $C780-$C78F
@@ -468,6 +483,7 @@ The Disk II controller can be placed in any slot (typically 6 or 5):
 #### Error Handling
 
 The DISK ROM has minimal error handling:
+
 - **Infinite Retry:** If sector not found, continues searching same track
 - **No Timeout:** Will hang if disk has errors
 - **No Reporting:** Failures are silent (user sees black screen)
@@ -501,6 +517,7 @@ The DISK ROM has minimal error handling:
 #### For Emulator Development
 
 Emulating the DISK ROM requires:
+
 1. **IWM Hardware Emulation:** Stepper motor, drive motor, read/write head
 2. **Disk Image Format:** Support for 140KB 5.25" disk images
 3. **6+2 Encoding:** Decode sector data correctly
@@ -509,6 +526,7 @@ Emulating the DISK ROM requires:
 #### For Clean-Room Implementation
 
 A clean-room DISK ROM would need:
+
 1. **IWM Interface:** Understanding of each hardware register's function
 2. **6+2 Algorithm:** Correct implementation of encoder/decoder
 3. **Sector Format:** Track/sector/data layout on disk

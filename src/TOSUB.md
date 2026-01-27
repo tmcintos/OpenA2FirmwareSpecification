@@ -5,6 +5,7 @@
 This routine serves as a dispatcher to execute other ROM subroutines whose entry points are listed in the [SUBTBL](#subtbl-ffe3) lookup table. It is typically invoked after identifying a command character via the monitor's command interpreter.
 
 `TOSUB` works by:
+
 1.  Pushing the high-order byte of the target subroutine's address (derived from `>GO`) onto the stack.
 2.  Pushing the low-order byte of the target subroutine's address (retrieved from [SUBTBL](#subtbl-ffe3) indexed by the Y register) onto the stack.
 3.  Saving the current [MODE](#mode) byte into the A register.

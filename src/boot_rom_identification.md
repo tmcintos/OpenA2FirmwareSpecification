@@ -58,6 +58,7 @@ Cards following the Pascal 1.1 Firmware Protocol can be identified by ID bytes a
 ### Important Warning
 
 **Do NOT use Pascal 1.1 ID bytes to identify devices that do not follow this protocol.** This includes:
+
 - Disk II controllers
 - SmartPort devices
 - SCSI controllers
@@ -79,18 +80,21 @@ Using these bytes to identify such devices can produce incorrect results and may
 The IIc includes built-in ports that follow the Pascal 1.1 protocol. Different ROM versions identified by the Version byte at $FBBF:
 
 **IIc ROM 1st version** ($FBBF = $FF):
+
 - Slot 1: Serial Port ($31)
 - Slot 2: Serial Port ($31)
 - Slot 3: 80-Column ($88)
 - Slot 4: Mouse ($20)
 
 **IIc ROM 2nd version** ($FBBF = $00):
+
 - Slots 1-2: Serial Ports ($31)
 - Slot 3: 80-Column ($88)
 - Slot 4: Mouse ($20)
 - Slot 7: AppleTalk ($31)
 
 **IIc ROM 3rd-5th versions** ($FBBF = $03-$05):
+
 - Slots 1-2: Serial Ports ($31)
 - Slot 3: 80-Column ($88)
 - Slot 7: Mouse ($20) or AppleTalk ($31)
@@ -108,6 +112,7 @@ The IIc includes built-in ports that follow the Pascal 1.1 protocol. Different R
 ### Overview
 
 ProDOS introduced a standardized identification protocol for block devices (disk controllers) and SmartPort expansion devices. This protocol is used by:
+
 - ProDOS 1.x and 2.x
 - Apple IIe with ProDOS
 - Apple IIc (native)
@@ -129,6 +134,7 @@ ProDOS block devices and SmartPort devices are identified by ID bytes at the fol
 To identify a device in slot n:
 
 ```
+
 1. Read $Cn01
 2. If NOT $20, device does not follow ProDOS protocol; skip this slot
 3. Read $Cn03
@@ -143,11 +149,13 @@ To identify a device in slot n:
 ### ProDOS Block Device
 
 A ProDOS block device presents a traditional block storage interface:
+
 - Single $Cn00 entry point for boot
 - Block read/write via standard Disk II-compatible mechanism
 - Examples: Disk II controller, some RAM disk cards, some hard drive controllers
 
 **ID Bytes:**
+
 - $Cn01 = $20
 - $Cn03 = $00
 - $Cn05 = $03
@@ -156,12 +164,14 @@ A ProDOS block device presents a traditional block storage interface:
 ### SmartPort Protocol
 
 SmartPort is an extended protocol providing:
+
 - Multiple logical units (drives) per slot
 - Standardized status and control commands
 - Support for variable block sizes
 - Unified interface for diverse device types (hard drives, networks, etc.)
 
 **ID Bytes:**
+
 - $Cn01 = $20
 - $Cn03 = $00
 - $Cn05 = $03

@@ -20,6 +20,7 @@ The complete boot process follows this sequence:
 The firmware reset routine executes essential system initialization that all Apple II systems require:
 
 **From Reset ($FA62):**
+
 - Initialize 6502 hardware state (clear flags, set stack pointer)
 - Configure memory subsystem (RAM timing, address decoding)
 - Initialize I/O subsystem (keyboard, display, speakers)
@@ -29,6 +30,7 @@ The firmware reset routine executes essential system initialization that all App
 - Initialize system zero-page locations
 
 **Warm-Start Detection (IIe and later):**
+
 - Check PWREDUP magic byte at $03F4
 - If SOFTEV and PWREDUP are consistent (SOFTEV XOR PWREDUP = $A5), treat as warm start
 - Warm start skips full memory test and re-initialization; jumps to SOFTEV
@@ -39,6 +41,7 @@ The firmware reset routine executes essential system initialization that all App
 After firmware initialization, control may optionally transfer to a peripheral device's boot ROM. This allows disk drives, hard drives, networks, and other devices to load operating system code.
 
 **Boot ROM Location:**
+
 - **Address:** $Cn00 (where n = slot number, 1-7)
 - **Size:** 256 bytes ($Cn00-$CnFF)
 - **Example:** Disk II controller boot ROM in slot 6 = $C600-$C6FF
@@ -79,6 +82,7 @@ When a peripheral device's boot ROM is executed, it typically:
 **Example: Disk II Boot Process**
 
 The Disk II controller ROM ($C600) performs:
+
 1. Initialize stepper motor and disk controller (IWM) hardware
 2. Move disk head to track 0 (blind seek - no track detection)
 3. Read sector 0 from track 0 (boot sector)
@@ -90,6 +94,7 @@ The Disk II controller ROM ($C600) performs:
 Pressing the RESET button performs the same initialization as power-on, with one critical difference:
 
 **RESET Does NOT Destroy Existing Programs:**
+
 - Existing BASIC programs remain in memory
 - Existing machine language programs remain in memory
 - System enters Monitor (command mode) without clearing RAM

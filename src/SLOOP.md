@@ -14,6 +14,7 @@ This routine implements the disk controller slot search loop, responsible for fi
     *   [LOC1](#loc1) (address $01): Contains `$Cn`, where `n` is the next slot number to test for a startup device.
 
 **Output:**
+
 *   **Registers:** None (does not return to calling program).
 *   **Memory:**
     *   Screen: May display "Check Startup Device".
