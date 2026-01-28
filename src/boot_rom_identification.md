@@ -14,18 +14,18 @@ The protocol used depends on the target operating system and system generation.
 
 #### Protocol 1: Original Apple II DOS
 
-### Identification Method
+##### Identification Method
 
 **DOS 3.2 and 3.3** do not implement a standardized identification protocol. Boot detection is based simply on the presence of executable code at the slot's boot ROM address.
 
-### Boot ROM Requirements
+##### Boot ROM Requirements
 
 - Code must be present and executable at **$Cn00-$CnFF** (where n = slot number)
 - No specific ID bytes required
 - Firmware scans slots 1-7 and executes the first boot ROM found
 - First boot ROM to load successfully takes control of the system
 
-### Target Systems
+##### Target Systems
 
 - Apple II
 - Apple II+
@@ -35,7 +35,7 @@ The protocol used depends on the target operating system and system generation.
 
 #### Protocol 2: Pascal 1.1 Firmware Protocol
 
-### ID Byte Structure
+##### ID Byte Structure
 
 Cards following the Pascal 1.1 Firmware Protocol can be identified by ID bytes at the following addresses (where n is the slot number):
 
@@ -46,7 +46,7 @@ Cards following the Pascal 1.1 Firmware Protocol can be identified by ID bytes a
 | $Cn0B | $01 | Generic signature of cards with Pascal 1.1 Protocol |
 | $Cn0C | $c:i | Device signature byte (c = device type, i = identifier) |
 
-### Device Type Encodings ($Cn0C High Nibble)
+##### Device Type Encodings ($Cn0C High Nibble)
 
 | Value | Device Type |
 |-------|-------------|
@@ -55,7 +55,7 @@ Cards following the Pascal 1.1 Firmware Protocol can be identified by ID bytes a
 | $2x | Mouse |
 | Other | Reserved or vendor-specific |
 
-### Important Warning
+##### Important Warning
 
 **Do NOT use Pascal 1.1 ID bytes to identify devices that do not follow this protocol.** This includes:
 
@@ -67,7 +67,7 @@ Cards following the Pascal 1.1 Firmware Protocol can be identified by ID bytes a
 
 Using these bytes to identify such devices can produce incorrect results and may cause system failures.
 
-### Apple II Peripheral Cards Using Pascal 1.1 Protocol
+##### Apple II Peripheral Cards Using Pascal 1.1 Protocol
 
 | Card | $Cn05 | $Cn07 | $Cn0B | $Cn0C |
 |------|-------|-------|-------|-------|
@@ -75,7 +75,7 @@ Using these bytes to identify such devices can produce incorrect results and may
 | Apple 80 Column Card | $38 | $18 | $01 | $88 |
 | Apple II Mouse Card | $38 | $18 | $01 | $20 |
 
-### Apple IIc Built-in Ports
+##### Apple IIc Built-in Ports
 
 The IIc includes built-in ports that follow the Pascal 1.1 protocol. Different ROM versions identified by the Version byte at $FBBF:
 
@@ -99,7 +99,7 @@ The IIc includes built-in ports that follow the Pascal 1.1 protocol. Different R
 - Slot 3: 80-Column ($88)
 - Slot 7: Mouse ($20) or AppleTalk ($31)
 
-### Target Systems
+##### Target Systems
 
 - Apple II Pascal
 - Some Apple IIe Pascal configurations
@@ -109,7 +109,7 @@ The IIc includes built-in ports that follow the Pascal 1.1 protocol. Different R
 
 #### Protocol 3: ProDOS Block Device Protocol
 
-### Overview
+##### Overview
 
 ProDOS introduced a standardized identification protocol for block devices (disk controllers) and SmartPort expansion devices. This protocol is used by:
 
@@ -118,7 +118,7 @@ ProDOS introduced a standardized identification protocol for block devices (disk
 - Apple IIc (native)
 - Apple IIGS
 
-### ID Byte Structure
+##### ID Byte Structure
 
 ProDOS block devices and SmartPort devices are identified by ID bytes at the following addresses:
 
@@ -129,7 +129,7 @@ ProDOS block devices and SmartPort devices are identified by ID bytes at the fol
 | $Cn05 | General Code | $03 for ProDOS block devices; $03 for SmartPort |
 | $Cn07 | Unit Number / Protocol | $00 for SmartPort; varies for other block devices |
 
-### Identification Algorithm
+##### Identification Algorithm
 
 To identify a device in slot n:
 
@@ -146,7 +146,7 @@ To identify a device in slot n:
 9. If $xx (non-zero), device is a traditional ProDOS block device
 ```
 
-### ProDOS Block Device
+##### ProDOS Block Device
 
 A ProDOS block device presents a traditional block storage interface:
 
@@ -161,7 +161,7 @@ A ProDOS block device presents a traditional block storage interface:
 - $Cn05 = $03
 - $Cn07 = varies (device-specific)
 
-### SmartPort Protocol
+##### SmartPort Protocol
 
 SmartPort is an extended protocol providing:
 
@@ -181,7 +181,7 @@ SmartPort is an extended protocol providing:
 
 **Reference:** See [ProDOS 8 Organization](https://prodos8.com/docs/technote/15/) for complete SmartPort protocol documentation.
 
-### Target Systems
+##### Target Systems
 
 - Apple IIe with ProDOS
 - Apple IIc (native ProDOS support)
@@ -204,28 +204,28 @@ SmartPort is an extended protocol providing:
 
 #### Boot ROM Implementation Guidelines
 
-### For Original Apple II / II+
+##### For Original Apple II / II+
 
 - No specific ID bytes needed
 - Code must be present and executable at $Cn00
 - Firmware calls via `JMP (LOC0)` where LOC0 = $Cn00
 - First boot ROM found takes control
 
-### For Apple IIe with ProDOS
+##### For Apple IIe with ProDOS
 
 - Implement ProDOS Block Device ID bytes ($Cn01, $Cn03, $Cn05, $Cn07)
 - Boot ROM at $Cn00 should follow traditional Disk II protocol
 - ProDOS will scan for devices during boot and load ProDOS drivers
 - Pascal-based systems will look for Pascal 1.1 ID bytes if present
 
-### For Apple IIc / IIGS
+##### For Apple IIc / IIGS
 
 - Implement ProDOS Block Device or SmartPort ID bytes
 - Boot ROM follows ProDOS block device protocol
 - System firmware expects ProDOS-compatible device
 - SmartPort devices require additional protocol implementation
 
-### For Multi-Device Compatibility
+##### For Multi-Device Compatibility
 
 - Implement all three protocols if targeting multiple systems:
   - Pascal 1.1 ID bytes for compatibility with Pascal systems

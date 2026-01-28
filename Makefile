@@ -33,8 +33,6 @@ pdf: $(PDF_OUTPUT)
 $(OUTPUT_FILE): $(TITLE_PAGE) $(INTRODUCTION) $(SUMMARY) $(MEMORY_LOCATIONS) $(ZERO_PAGE_DEFS) $(NON_ZERO_PAGE_DEFS) $(BOOT_SEQUENCE_OVERVIEW) $(MONITOR_USER_INTERFACE) $(DETAILED_ENTRY_POINTS_HEADER) $(DETAILED_ENTRY_POINTS_TMP) $(PERIPHERAL_ROM_HEADING) $(PERIPHERAL_ROM_SECTION) $(BOOT_ROM_IDENTIFICATION) $(DISK_ROM_DETAILED)
 	pandoc --standalone \
 		--number-sections \
-		--toc \
-		--toc-depth=2 \
 		--from=markdown-tex_math_dollars \
 		--to=gfm \
 		--lua-filter=clean-headings-for-toc.lua \
@@ -57,6 +55,9 @@ $(OUTPUT_FILE): $(TITLE_PAGE) $(INTRODUCTION) $(SUMMARY) $(MEMORY_LOCATIONS) $(Z
 
 $(PDF_OUTPUT): $(OUTPUT_FILE)
 	pandoc $(OUTPUT_FILE) \
+		--toc \
+		--toc-depth=5 \
+		--lua-filter=shift-headings-pdf.lua \
 		--lua-filter=esc-symbol.lua \
 		--pdf-engine=/usr/local/texlive/2025/bin/universal-darwin/xelatex \
 		--template=lualatex-custom.tex \

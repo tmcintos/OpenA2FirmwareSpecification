@@ -1,7 +1,7 @@
 ---
 title: "Open A2 Firmware Specification"
 subtitle: "Technical Reference Manual for Apple II Family ROM"
-author: "Clean-Room Technical Specification"
+author: "Open A2 ROM Specification Contributors"
 date: "January 2026"
 ---
 
@@ -9,7 +9,7 @@ date: "January 2026"
 
 ## Technical Reference Manual for 8-bit Apple II Family ROM
 
-**Document Version:** 0.1.1  
+**Document Version:** 0.1.2  
 **Date:** January 2026  
 **Status:** Technical Reference
 

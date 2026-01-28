@@ -26,11 +26,16 @@ $if(cancel)$
 \usepackage{cancel}
 $endif$
 $-- Custom font settings - must come after fontspec but before common.latex() $--
-\setmainfont[Ligatures=TeX,
-  Path=/System/Library/Fonts/
-]{LucidaGrande.ttc}
+\setmainfont[
+  Path=/System/Library/Fonts/,
+  Extension=.ttc,
+  UprightFont=*,
+  BoldFont=*,
+  UprightFeatures={FontIndex=0},
+  BoldFeatures={FontIndex=1}
+]{LucidaGrande}
 \newfontfamily{\symbolfont}[Path=/System/Library/Fonts/]{Apple Symbols.ttf}
-\setmonofont{Menlo}
+\setmonofont[Scale=0.9]{Courier New}
 $-- Define a command to access symbol characters $--
 \newcommand{\sym}[1]{{\symbolfont #1}}
 $--
@@ -46,6 +51,32 @@ $for(header-includes)$
 $header-includes$
 $endfor$
 $after-header-includes.latex()$
+$--
+$-- Redefine heading fonts to be bold sans-serif without titlesec
+$-- This preserves hyperref anchors for correct bookmark navigation
+$--
+\makeatletter
+\renewcommand{\section}{\@startsection{section}{1}{\z@}%
+  {-3.5ex \@plus -1ex \@minus -.2ex}%
+  {2.3ex \@plus.2ex}%
+  {\normalfont\Large\sffamily\bfseries}}
+\renewcommand{\subsection}{\@startsection{subsection}{2}{\z@}%
+  {-3.25ex\@plus -1ex \@minus -.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\large\sffamily\bfseries}}
+\renewcommand{\subsubsection}{\@startsection{subsubsection}{3}{\z@}%
+  {-3.25ex\@plus -1ex \@minus -.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\sffamily\bfseries}}
+\renewcommand{\paragraph}{\@startsection{paragraph}{4}{\z@}%
+  {3.25ex \@plus1ex \@minus.2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\sffamily\bfseries}}
+\renewcommand{\subparagraph}{\@startsection{subparagraph}{5}{\z@}%
+  {3.25ex \@plus1ex \@minus .2ex}%
+  {1.5ex \@plus .2ex}%
+  {\normalfont\normalsize\sffamily\bfseries}}
+\makeatother
 $hypersetup.latex()$
 $if(pdf-trailer-id)$
 
@@ -104,6 +135,8 @@ $if(toccolor)$
 $endif$
 $endif$
 \setcounter{tocdepth}{$toc-depth$}
+\phantomsection
+\addcontentsline{toc}{section}{Contents}
 \tableofcontents
 }
 $endif$

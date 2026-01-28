@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine serves as a break handler that prints information about the `BRK` instruction. It prints the values for the program counter and 6502 registers (A, X, Y, P, S) that are stored in zero page locations ([A5H](#a5h), [XREG](#xreg), [YREG](#yreg), [STATUS](#status), [SPNT](#spnt), [PCL/PCH](#pcl-pch)). After printing this information, it jumps to the Monitor. This routine is present in Apple II+, Apple //e, and Apple //c ROMs.
+This routine serves as a break handler that prints information about the `BRK` instruction. It prints the values for the program counter and 6502 registers (A, X, Y, P, S) that are stored in zero page locations ([A5H](#a5h), [XREG](#xreg), [YREG](#yreg), [STATUS](#status), [SPNT](#spnt), [PCL/PCH](#pcl-pch)). After printing this information, it jumps to the Monitor. This routine is present in Apple II+, Apple IIe, and Apple //c ROMs.
 
 **Input:**
 
