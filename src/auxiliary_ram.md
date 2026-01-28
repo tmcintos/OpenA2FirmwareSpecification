@@ -201,6 +201,7 @@ STA $C054    ; Select page 1 (or $C055 for page 2)
 **Language Card Soft Switches ($C080-$C08F):**
 
 The bank-switched RAM region ($D000-$FFFF, 16KB total) is divided into:
+
 - **$D000-$DFFF**: Bank 1 or Bank 2 (4KB, selectable)
 - **$E000-$FFFF**: Common area (12KB, same in both banks)
 
@@ -222,6 +223,7 @@ The bank-switched RAM region ($D000-$FFFF, 16KB total) is divided into:
 - **$C012 (49170) R**: Read LCRAMRD status; bit 7 = 1 if reading RAM, 0 if ROM
 
 **Two-Read Requirement:**
+
 The write-enable switches require **two successive reads** to the same address to enable RAM writing. This prevents accidental writes from indexed addressing that might touch these locations once.
 
 ```
@@ -235,6 +237,7 @@ LDA $C08B    ; Second read - now RAM is readable and writable
 All Apple IIe and IIc systems include auxiliary RAM as standard. However, software can verify auxiliary RAM presence:
 
 **Detection Method:**
+
 ```
 ; Test for auxiliary RAM
 STA $C005    ; Write to auxiliary RAM
