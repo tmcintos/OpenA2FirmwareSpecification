@@ -9,7 +9,7 @@ The Monitor command system uses a pair of lookup tables at fixed ROM addresses t
 - **ASCII Command Table (CHRTBL)** at `$FFCC` — Contains the ASCII character codes for each supported command
 - **Routine Offset Table (SUBTBL)** at `$FFE3` — Contains the 16-bit offsets to the routine that handles each command
 
-### Entry Points
+### Monitor Entry Points
 
 The Monitor is entered through the following entry points:
 
@@ -121,7 +121,7 @@ To implement a Monitor-compatible ROM:
 - [MonZ4](#monz4-ff70) — Alternative Monitor entry point
 - [INPRT](#inprt-fe8d), [OUTPRT](#outport-fe95) — I/O port configuration for Monitor I/O
 
-### Notes
+### Monitor Implementation Notes
 
 - The Monitor is a critical system component and its command structure is relied upon by external diagnostic tools.
 - The fixed table locations at `$FFCC` and `$FFE3` are essential for ROM compatibility.

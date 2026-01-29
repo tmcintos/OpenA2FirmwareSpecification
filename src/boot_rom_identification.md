@@ -25,7 +25,7 @@ The protocol used depends on the target operating system and system generation.
 - Firmware scans slots 1-7 and executes the first boot ROM found
 - First boot ROM to load successfully takes control of the system
 
-##### Target Systems
+##### Protocol 1 Target Systems
 
 - Apple II
 - Apple II+
@@ -35,7 +35,7 @@ The protocol used depends on the target operating system and system generation.
 
 #### Protocol 2: Pascal 1.1 Firmware Protocol
 
-##### ID Byte Structure
+##### Protocol 2 ID Byte Structure
 
 Cards following the Pascal 1.1 Firmware Protocol can be identified by ID bytes at the following addresses (where n is the slot number):
 
@@ -99,7 +99,7 @@ The IIc includes built-in ports that follow the Pascal 1.1 protocol. Different R
 - Slot 3: 80-Column ($88)
 - Slot 7: Mouse ($20) or AppleTalk ($31)
 
-##### Target Systems
+##### Protocol 2 Target Systems
 
 - Apple II Pascal
 - Some Apple IIe Pascal configurations
@@ -109,7 +109,7 @@ The IIc includes built-in ports that follow the Pascal 1.1 protocol. Different R
 
 #### Protocol 3: ProDOS Block Device Protocol
 
-##### Overview
+##### Protocol 3 Overview
 
 ProDOS introduced a standardized identification protocol for block devices (disk controllers) and SmartPort expansion devices. This protocol is used by:
 
@@ -118,7 +118,7 @@ ProDOS introduced a standardized identification protocol for block devices (disk
 - Apple IIc (native)
 - Apple IIGS
 
-##### ID Byte Structure
+##### Protocol 3 ID Byte Structure
 
 ProDOS block devices and SmartPort devices are identified by ID bytes at the following addresses:
 
@@ -181,7 +181,7 @@ SmartPort is an extended protocol providing:
 
 **Reference:** See [ProDOS 8 Organization](https://prodos8.com/docs/technote/15/) for complete SmartPort protocol documentation.
 
-##### Target Systems
+##### Protocol 3 Target Systems
 
 - Apple IIe with ProDOS
 - Apple IIc (native ProDOS support)

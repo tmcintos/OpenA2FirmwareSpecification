@@ -13,19 +13,26 @@ The specification enables:
 
 ### How to Use This Document
 
-This technical reference is organized into eight main sections reflecting the structure of the Apple II firmware:
+This technical reference is organized to provide progressive understanding, from high-level architecture to detailed specifications:
 
-1. **Summary of Firmware Entry Points** - Quick reference table of all system ROM routines with addresses and function summaries
-2. **Memory Locations** - Definitions of zero-page variables, RAM locations, and hardware register addresses used by firmware
-3. **System Boot and Initialization Sequence** - System startup, reset handling, and peripheral boot protocols
-4. **RAM Initialization and Memory Detection** - Memory testing, size detection, and RAM configuration for different Apple II models
-5. **Auxiliary RAM and Memory Soft Switches** - Extended memory support (Apple IIe/IIc), 80-column display, and bank-switching
-6. **Monitor User Interface and Command Dispatcher** - User-facing monitor commands, escape sequences, and control character support
-7. **Detailed Firmware Entry Points** - Complete documentation of all system ROM routines with input/output contracts, memory effects, and internal dependencies
-8. **Peripheral Controller ROMs** - Overview of peripheral ROM structure, including:
-   - Disk II Controller ROM overview and capabilities
-   - Boot ROM identification protocols (DOS, Pascal 1.1, ProDOS)
-9. **Disk II Controller ROM Specification** - Complete technical reference for the standard 5.25" disk controller ROM implementation
+1. **System Architecture Overview** - High-level introduction to Apple II hardware and firmware organization, including:
+   - Hardware Variants and Identification
+   - Memory System
+   - Display System
+   - I/O and Soft Switches
+   - ROM Organization and Banking
+2. **System Boot and Initialization** - Reset handling, memory detection, warm start, peripheral boot protocols
+3. **Interrupt Handling** - BRK, IRQ, and NMI interrupts, memory state preservation, vector usage
+4. **Monitor User Interface** - Monitor commands, escape sequences, control characters, command dispatcher
+5. **Summary of Firmware Entry Points** - Quick reference table of all entry points with addresses
+6. **Detailed Firmware Entry Points** - Complete documentation of all system ROM routines with:
+    - Input/output register contracts
+    - Memory effects and side effects
+    - Internal dependencies and call chains
+    - Implementation requirements
+7. **Symbol Definitions** - Zero-page variables, system variables, hardware registers referenced throughout
+8. **Peripheral Controller ROMs** - Overview of peripheral ROM protocols and boot ROM identification
+9. **Disk II Controller ROM Specification** - Complete technical reference for the standard 5.25" disk controller
 
 Within each routine entry, you will find:
 

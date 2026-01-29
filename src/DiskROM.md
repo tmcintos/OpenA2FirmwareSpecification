@@ -4,7 +4,6 @@
 
 The Disk II Controller ROM is located at the slot-relative address $Cn00 (where n is the slot number, typically slot 6 giving $C600). This 256-byte ROM contains the boot loader ("BOOT0") that initializes disk operations and loads the secondary boot loader (BOOT1) from disk into memory.
 
-**Source:** Disassembled from `C600ROM Disassembly.html` (AppleWin extraction)  
 **Size:** 256 bytes ($C600-$C6FF)  
 **Architecture:** 6502 assembly (Disk II controller boot code)  
 **Primary Function:** Disk boot loader and initialization
@@ -225,7 +224,7 @@ This elegant mechanism allows peripheral ROMs to be completely slot-independent;
 
 ---
 
-### Entry Points
+### Disk II ROM Entry Points
 
 #### ENTRY ($C600)
 
@@ -535,22 +534,20 @@ A clean-room DISK ROM would need:
 
 ---
 
-### References
+### Disk II ROM References
 
-**Source File:** `C600ROM Disassembly.html` (in documentation directory)
+### Disk II ROM References
 
-**Extracted From:** AppleWin emulator source code
+**Documentation Sources:**
 
-**Original Copyright:** Apple Computer Inc.
-
-**Disassembly Tool:** 6502bench SourceGen v1.5 by Andy McFadden
+- ProDOS 8 Technical Note #15 - SmartPort and block device protocols
 
 ---
 
-### Notes
+### Disk II ROM Notes
 
 - This documentation covers the standard Disk II controller ROM found in Apple II, II+, IIe, and IIc systems
-- Enhanced Disk II controllers (third-party) may have different ROM code
+- Enhanced Disk II controllers (third-party) may have variations in implementation
 - Later Apple systems (IIgs) use different disk controllers (3.5" drives)
 - This ROM is typically auto-detected when a Disk II controller is present in an expansion slot
 

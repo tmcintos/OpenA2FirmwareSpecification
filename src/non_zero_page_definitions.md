@@ -1,4 +1,4 @@
-### <a id="other-variables"></a>Other Variables
+### <a id="other-definitions"></a>Other Definitions
 
 | Address | Label(s) | Description | Usage |
 |---|---|---|---|
