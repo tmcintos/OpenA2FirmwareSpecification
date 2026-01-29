@@ -1,0 +1,56 @@
+name: Deploy to GitHub Pages
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download release assets
+        run: |
+          mkdir -p _site
+          cd _site
+          gh release download ${{ github.event.release.tag_name }} \
+            --repo ${{ github.repository }} \
+            --pattern "*.md" \
+            --pattern "*.pdf"
+        env:
+          GH_TOKEN: ${{ github.token }}
+      
+      - name: Create index.html redirect
+        run: |
+          cat > _site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html>
+          <head>
+            <meta charset="utf-8">
+            <meta http-equiv="refresh" content="0;url=OpenA2FirmwareSpecification.md">
+            <title>Open A2 ROM Specification</title>
+          </head>
+          <body>
+            <h1>Open A2 ROM Specification</h1>
+            <p><a href="OpenA2FirmwareSpecification.md">View Markdown Specification</a></p>
+            <p><a href="OpenA2FirmwareSpecification.pdf">Download PDF</a></p>
+          </body>
+          </html>
+          EOF
+      
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+      
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+      
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

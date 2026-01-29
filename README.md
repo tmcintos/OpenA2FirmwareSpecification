@@ -6,12 +6,12 @@ This project provides a comprehensive, open-source technical reference for 8-bit
 
 The goal of this project is to produce a comprehensive technical reference manual (TRM) for compatible ROM implementations targeting 8-bit systems in the Apple II family. This specification details firmware entry points, register states (on entry and exit), memory effects, and overall functionality.
 
-The final outputs are:
+**View the latest specification:**
 
-- `OpenA2FirmwareSpecification.md` - The complete specification in Markdown format
-- `OpenA2FirmwareSpecification.pdf` - A formatted PDF version with proper typography and cross-references
+- [OpenA2FirmwareSpecification.md](https://tmcintos.github.io/OpenA2FirmwareSpecification/OpenA2FirmwareSpecification.md) - Read online (Markdown, rendered by GitHub)
+- [OpenA2FirmwareSpecification.pdf](https://tmcintos.github.io/OpenA2FirmwareSpecification/OpenA2FirmwareSpecification.pdf) - Download PDF
 
-Both are generated from the various Markdown files in the `src` directory.
+Both files are generated from the various Markdown files in the `src` directory.
 
 ## Building the Specification
 
