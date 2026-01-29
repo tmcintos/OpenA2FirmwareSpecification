@@ -122,7 +122,7 @@ To implement a Monitor-compatible ROM:
 - [TOSUB](#tosub-ffbe) — Generic subroutine dispatcher using table lookup
 - [GetLnZ](#getlnz-fd67) — Reads a line from user input (used by Monitor)
 - [MonZ4](#monz4-ff70) — Alternative Monitor entry point
-- [INPRT](#inprt-fe8d), [OUTPRT](#outport-fe95) — I/O port configuration for Monitor I/O
+- [INPRT](#inprt-fe8d), [OUTPRT](#outprt-fe97) — I/O port configuration for Monitor I/O
 
 ### Monitor Implementation Notes
 
