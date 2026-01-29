@@ -9,7 +9,7 @@ date: "January 2026"
 
 ## Technical Reference Manual for 8-bit Apple II Family ROM
 
-**Document Version:** 0.1.3
+**Document Version:** 0.1.4
 **Date:** January 2026  
 **Status:** Technical Reference
 
