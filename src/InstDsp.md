@@ -33,5 +33,5 @@ This routine disassembles and displays a single 6502 instruction. The instructio
 *   [PCL](#pcl-pch)
 *   [PCH](#pcl-pch)
 *   [COUT](#cout-fded) (for outputting characters)
-*   [InsDs1-2](#insds1-2-f88c)
+*   [InsDs1_2](#insds1_2-f88c)
 *   [InsDs2](#insds2-f88e)

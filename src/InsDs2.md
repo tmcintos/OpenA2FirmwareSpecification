@@ -28,5 +28,5 @@ This routine determines the length of a 6502 instruction whose opcode is provide
 
 **See also:**
 
-*   [InsDs1-2](#insds1-2-f88c)
+*   [InsDs1_2](#insds1_2-f88c)
 *   [LENGTH](#length)

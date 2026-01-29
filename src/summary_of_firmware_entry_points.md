@@ -2,6 +2,7 @@
 
 | Routine Name | Address | Function Summary |
 |---|---|---|
+| [A1PC](#a1pc-fe75) | $FE75 | Conditionally copy A1L/A1H to PCL/PCH (Internal helper). |
 | [Advance](#advance-fbf4) | $FBF4 | Advances the text cursor's horizontal position. |
 | [AppleII](#appleii-fb60) | $FB60 | Clears screen and displays machine ID. |
 | [BasCalc](#bascalc-fbc1) | $FBC1 | Calculates 16-bit base address for text display line. |
@@ -11,6 +12,7 @@
 | [Bell2](#bell2-fbe4) | $FBE4 | Generates a square-wave tone by toggling the system speaker for a duration. |
 | [Break](#break-fa4c) | $FA4C | Handles processor hardware break event, saves registers, and transfers control to user hook. |
 | [BS](#bs-fc10) | $FC10 | Performs a backspace operation, decrements CH, and moves cursor up if at left edge. |
+| [ClrCH](#clrch-fee9) | $FEE9 | Clear horizontal cursor positions (Internal helper). |
 | [ClrEOL](#clreol-fc9c) | $FC9C | Clears a line of text from the cursor's current position to the right edge of the window. |
 | [ClrEOLZ](#clreolz-fc9e) | $FC9E | Clears a line of text from a specified column to the right edge of the window. |
 | [ClrEOP](#clreop-fc42) | $FC42 | Clears the text window from the current cursor position to the end of the window. |
@@ -25,6 +27,7 @@
 | [Dig](#dig-ff8a) | $FF8A | Converts ASCII hexadecimal digit to 4-bit numerical value. |
 | [FD10](#fd10-fd10) | $FD10 | Indirect jump for standard input, transfers control to routine in KSWL/KSWH. |
 | [GBasCalc](#gbascalc-f847) | $F847 | Calculates 16-bit base address for a specified Lo-Res graphics display row. |
+| [GetCur2](#getcur2-ccad) | $CCAD | Update zero-page horizontal cursor positions (Internal helper). |
 | [GetLn](#getln-fd6a) | $FD6A | Reads a complete line of input from standard input, with editing features. |
 | [GetLn0](#getln0-fd6c) | $FD6C | Display prompt in A register and read a line of text,Y,-,Y,FALSE,Standard Input,Print A + GetLn1, | |
 | [GetLn1](#getln1-fd6f) | $FD6F | Alternate entry point to GetLn, reads line without displaying a prompt. |
@@ -34,13 +37,15 @@
 | [HeadR](#headr-fcc9) | $FCC9 | Obsolete entry point, simply returns. |
 | [HLine](#hline-f819) | $F819 | Draws a horizontal line of blocks on the Lo-Res graphics display. |
 | [Home](#home-fc58) | $FC58 | Clears the active text window and positions cursor at upper-left corner. |
-| [IDRoutine](#idroutine-fe1f) | $FE1F | Checks Apple II model and returns with Carry flag set for IIc or clear for IIGS. |
+| [HomeCur](#homecur-cda5) | $CDA5 | Move cursor to upper left corner of text window (Internal helper). |
+| [IDRoutine](#idroutine-fe1f) | $FE1F | Immediate return from subroutine (Internal helper). |
 | [Init](#init-fb2f) | $FB2F | Initializes text display to show text Page 1 and full-screen text window. |
 | [InPort](#inport-fe8b) | $FE8B | Configures system's input links to a designated input port. |
+| [InsDs1_2](#insds1_2-f88c) | $F88C | Loads A with an opcode then calls InsDs2 to calculate its length. |
 | [InsDs2](#insds2-f88e) | $F88E | Determines length (minus 1) of 6502 instruction from opcode in A. |
-| [InsDsl-2](#insds1-2-f88c) | $F88C | Loads A with an opcode then calls InsDs2 to calculate its length. |
 | [InstDsp](#instdsp-f8d0) | $F8D0 | Disassembles and prints instruction pointed to by PCL/PCH to standard output. |
 | [IORTS](#iorts-ff58) | $FF58 | Contains an RTS instruction, used by peripheral cards for slot identification. |
+| [IRQ](#irq-fa40) | $FA40 | Jumps to interrupt-handling routine in ROM, saves state, checks interrupts, calls user hook. |
 | [KbdWait](#kbdwait-fb88) | $FB88 | Pauses execution until a key is pressed; handles Control-C. |
 | [KeyIn](#keyin-fd1b) | $FD1B | Manages standard keyboard input, displays cursor, waits for keypress, updates RNDL/RNDH. |
 | [KeyIn0](#keyin0-fd18) | $FD18 | Alternate entry point for standard keyboard input, jumps to routine in KSWL/KSWH. |
@@ -51,12 +56,12 @@
 | [MonZ4](#monz4-ff70) | $FF70 | Alternative entry point to System Monitor, bypasses initial prompt and mode clearing. |
 | [Move](#move-fe2c) | $FE2C | Copies a block of memory from source to destination. |
 | [NewBrk](#newbrk-fa47) | $FA47 | Stores A in MACSTAT, pulls Y, X, A from stack, then transfers to Break. |
+| [NewVTabZ](#newvtabz-fc88) | $FC88 | Update OURCV and transfer to VTABZ (Internal helper). |
 | [NxtA1](#nxtal-fcba) | $FCBA | Performs a 16-bit comparison of A1L/A1H with A2L/A2H, then increments A1L/A1H. |
 | [NxtA4](#nxta4-fcb4) | $FCB4 | Increments A4L/A4H, then calls NxtAl for comparison and A1L/A1H increment. |
 | [NxtChr](#nxtchr-ffad) | $FFAD | Inspects input buffer for hex numbers, converts them, handles case. |
 | [NxtCol](#nxtcol-f85f) | $F85F | Modifies current color for Lo-Res graphics plotting by adding 3. |
 | [OldBrk](#oldbrk-fa59) | $FA59 | Prints saved PC and register values, then transfers control to the Monitor. |
-| [IRQ](#irq-fa40) | $FA40 | Jumps to interrupt-handling routine in ROM, saves state, checks interrupts, calls user hook. |
 | [OldRst](#oldrst-ff59) | $FF59 | Performs warm restart, initializes text screen, sets I/O hooks, enters Monitor. |
 | [OutPort](#outport-fe95) | $FE95 | Sets output hooks to ROM code for specified port. |
 | [PCAdj](#pcadj-f953) | $F953 | Reads Monitor's program counter, loads into A/Y, increments based on LENGTH. |
@@ -101,7 +106,7 @@
 | [VidWait](#vidwait-fb78) | $FB78 | Checks for carriage return, Control-S, handles output pausing and enhanced video. |
 | [VLine](#vline-f828) | $F828 | Draws a vertical line of blocks on the Lo-Res graphics display. |
 | [VTab](#vtab-fc22) | $FC22 | Performs vertical tab to line specified by CV, updates BASL/BASH. |
-| [VTabZ](#vtabz-fc24) | $FC24 | Performs vertical tab to line specified by A register, updates BASL/BASH. |
+| [VTabZ](#vtabz-fc24) | $FC24 | Vertical tab to line specified in A register (Internal helper). |
 | [Wait](#wait-fca8) | $FCA8 | Introduces a time delay determined by the value in A register. |
 | [Write](#write-fecd) | $FECD | Obsolete entry point, simply returns. |
 | [ZIDByte](#zidbyte-fbc0) | $FBC0 | ROM identification byte, not a callable routine ($00 for Apple IIc). |
