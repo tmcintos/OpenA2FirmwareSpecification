@@ -9,7 +9,7 @@ title: Open A2 Firmware Specification
 
 ## Technical Reference Manual for 8-bit Apple II Family ROM
 
-**Document Version:** 0.1.3 **Date:** January 2026  
+**Document Version:** 0.1.4 **Date:** January 2026  
 **Status:** Technical Reference
 
 ------------------------------------------------------------------------
@@ -95,15 +95,38 @@ Within each routine entry, you will find:
 
 ### Compatibility Philosophy
 
-A correctly-implemented unified ROM following this specification should
-run software from any Apple II variant without variant detection. If
-variant-specific code paths are required, it indicates either:
+This specification documents the **firmware API contract** that provides
+software compatibility across 8-bit Apple II family systems. The goal is
+to enable ROM implementations that can run software written for any
+Apple II variant (II, II+, IIe, IIc) without requiring software to
+detect which model it’s running on.
 
-1.  The specification is incomplete, or
-2.  The implementation has diverged from the documented contract
+**Key Principles:**
+
+1.  **Consistent Entry Points** - Same firmware routine addresses
+    provide compatible functionality across models
+2.  **Hardware-Adaptive Implementation** - ROMs detect their host
+    hardware and implement variant-appropriate behavior internally
+3.  **Unified Programming Interface** - Software can depend on
+    documented entry point behavior without variant-specific code paths
+
+**Implementation Approach:**
+
+A ROM following this specification: - Detects host hardware capabilities
+using documented identification methods - Implements the documented API
+contract appropriate for available hardware features  
+- Provides consistent external behavior so application software remains
+portable - Uses internal branching when hardware differences require
+different approaches
+
+**Example:** The Home routine (\$FC58) clears the screen on all variants
+with the same entry point and register contract, but internally: - On
+IIe/IIc with 80-column support: clears both main and auxiliary display
+memory - On II/II+: clears only main display memory
 
 This design principle enables clean, maintainable ROM implementations
-suitable for modern reproduction systems.
+suitable for reproduction systems while preserving software
+compatibility with the historical Apple II software library.
 
 ## System Architecture Overview
 
@@ -2398,7 +2421,8 @@ Interrupt handlers should be in:
 
 ### See Also
 
-- **[BRK (\$FE75)](#brk-fe75)** - BRK instruction handler entry point
+- **[Break (\$FA4C)](#break-fa4c)** - BRK instruction handler entry
+  point
 - **[System Vectors](#system-boot-and-initialization)** - Interrupt
   vector initialization
 - **[Auxiliary RAM and Memory Soft
@@ -3094,10 +3118,10 @@ This routine handles the processor’s hardware break event. It saves CPU
 registers (A, X, Y, P, S) and the Program Counter (PC) into memory
 locations ([A5H](#a5h), [XREG](#xreg), [YREG](#yreg), [STATUS](#status),
 [SPNT](#spnt), [PCL/PCH](#pcl-pch)). Control then transfers to the
-user-defined break handler at [User Break Hook](#user-break-hook)
-(\$03F0-\$03F1), or to [OldBrk](#oldbrk-fa59) by default. In the
-original Apple II ROM, the address `$FA4C` corresponds to a different
-routine and is not the 6502 break handler described here.
+user-defined break handler at [BRKV](#brkv) (\$03F0-\$03F1), or to
+[OldBrk](#oldbrk-fa59) by default. In the original Apple II ROM, the
+address `$FA4C` corresponds to a different routine and is not the 6502
+break handler described here.
 
 **Input:**
 
@@ -3108,8 +3132,8 @@ routine and is not the 6502 break handler described here.
 - **Memory:**
   - [STATUS](#status) (address \$48): The routine reads the current
     processor status.
-  - [User Break Hook](#user-break-hook) (address \$03F0-\$03F1): The
-    16-bit address of the user’s custom break handler routine.
+  - [BRKV](#brkv) (address \$03F0-\$03F1): The 16-bit address of the
+    user’s custom break handler routine.
 
 **Output:**
 
@@ -3124,14 +3148,14 @@ routine and is not the 6502 break handler described here.
 **Side Effects:**
 
 - Saves CPU registers and Program Counter.
-- Transfers control via the [User Break Hook](#user-break-hook).
+- Transfers control via the address in [BRKV](#brkv).
 - Modifies the CPU stack.
 
 **See also:**
 
 - [OldBrk](#oldbrk-fa59)
 - [NewBrk](#newbrk-fa47)
-- [User Break Hook](#user-break-hook)
+- [BRKV](#brkv)
 - [A5H](#a5h)
 - [XREG](#xreg)
 - [YREG](#yreg)
@@ -4896,7 +4920,7 @@ IIe, and IIc ROMs standardized on the \$FA40 address documented here.
 
 **See also:**
 
-- [User IRQ Hook](#user-irq-hook)
+- [IRQLOC](#irqloc)
 
 ### InPort (\$FE8B)
 
@@ -5598,7 +5622,7 @@ X, and A registers from the stack before transferring control to the
 
 - [Break](#break-fa4c)
 - [MACSTAT](#macstat)
-- [User Break Hook](#user-break-hook)
+- [BRKV](#brkv)
 
 ### NxtA1 (\$FCBA)
 
@@ -6505,10 +6529,11 @@ achieved by internally calling [PrByte](#prbyte-fdda).
 **See also:**
 
 - [PrByte](#prbyte-fdda)
-
 - [PrntAX](#prntax-f941)
 
-- **Description:**
+### PwrUp (\$FAA6)
+
+**Description:**
 
 This routine, present in Apple IIe and later ROMs, performs a cold start
 of the system, including a partial system reset. It may perform partial
@@ -6721,8 +6746,8 @@ performs the following initialization sequence:
       if only open apple is pressed, forces cold start
 4.  **Transfer Control:**
     - If cold start is required: Jumps to [PwrUp](#pwrup-faa6)
-    - If warm start: Jumps to the [User Reset
-      Vector](#user-reset-vector) at (\$03F2-\$03F3)
+    - If warm start: Jumps to the address in [SOFTEV](#softev)
+      (\$03F2-\$03F3)
 
 **Input:**
 
@@ -6731,8 +6756,8 @@ performs the following initialization sequence:
   - X: N/A
   - Y: N/A
 - **Memory:**
-  - [SOFTEV](#user-reset-vector) (address \$03F2-\$03F3): User soft
-    entry vector; checked to determine warm vs cold start
+  - [SOFTEV](#softev) (address \$03F2-\$03F3): User soft entry vector;
+    checked to determine warm vs cold start
   - [PWREDUP](#validity-check-byte) (address \$03F4): Validity byte;
     used to verify SOFTEV integrity
 
@@ -6762,7 +6787,7 @@ performs the following initialization sequence:
 - Calls [Bell](#bell-ff3a) to sound system bell (aids in detecting key
   bounces during reset)
 - May transfer control to [PwrUp](#pwrup-faa6) for cold start, or to the
-  [User Reset Vector](#user-reset-vector)
+  address in [SOFTEV](#softev)
 - IIc variant: Checks button state (BUTN0, BUTN1) to enable exerciser
   mode if both apple keys are pressed
 - Calls variant-specific initialization routines
@@ -6804,7 +6829,7 @@ detailed memory location modifications.
 **See also:**
 
 - [PwrUp](#pwrup-faa6)
-- [User Reset Vector](#user-reset-vector)
+- [SOFTEV](#softev)
 - [SetNorm](#setnorm-fe84)
 - [Init](#init-fb2f)
 - [SetVid](#setvid-fe93)
@@ -7321,8 +7346,8 @@ reset process.
   - X: N/A
   - Y: N/A
 - **Memory:**
-  - [User Reset Vector](#user-reset-vector) (address \$03F2-\$03F3):
-    Pointer to the routine to be executed after a warm start.
+  - [SOFTEV](#softev) (address \$03F2-\$03F3): Pointer to the routine to
+    be executed after a warm start.
 
 **Output:**
 
@@ -8269,12 +8294,12 @@ routines.
 | Address | Label(s) | Description | Usage |
 |----|----|----|----|
 | \$0200 | <a id="inbuf"></a>INBUF | Monitor Input Buffer. | 128-byte buffer for storing user input lines, typically in the Monitor or command-line input routines. |
-| \$03F0-\$03F1 | BRKV | Break Instruction Vector (IIe+). | 16-bit pointer executed when BRK (\$00) instruction is encountered. Default points to Monitor Break handler. Used for debugging and system break handling. Added in Apple IIe; not present in original Apple II/II+. |
-| \$03F2-\$03F3 | SOFTEV | Warm Start / Soft Power-On Vector (IIe+). | 16-bit pointer to warm-start routine. Executed on RESET if \[SOFTEV XOR (SOFTEV+1) = PWREDUP\], indicating a clean shutdown. Default points to firmware initialization. Added in Apple IIe. |
+| \$03F0-\$03F1 | <a id="brkv"></a>BRKV | Break Instruction Vector (IIe+). | 16-bit pointer executed when BRK (\$00) instruction is encountered. Default points to Monitor Break handler. Used for debugging and system break handling. Added in Apple IIe; not present in original Apple II/II+. |
+| \$03F2-\$03F3 | <a id="softev"></a>SOFTEV | Warm Start / Soft Power-On Vector (IIe+). | 16-bit pointer to warm-start routine. Executed on RESET if \[SOFTEV XOR (SOFTEV+1) = PWREDUP\], indicating a clean shutdown. Default points to firmware initialization. Added in Apple IIe. |
 | \$03F4 | PWREDUP | Power-Up Detection Byte (IIe+). | Single byte containing magic value for warm-start detection. Valid value = SOFTEV+1 XOR \$A5 (complement of high byte). If this value matches, RESET is treated as warm start instead of cold start. Added in Apple IIe. |
 | \$03F8-\$03F9 | USRADR | User Address / Applesoft Exit Vector. | 16-bit pointer executed by `POP` instruction (simulated via stack manipulation) or Applesoft END statement. Default points to Monitor. Used for returning from user programs. Present in all Apple II variants. |
 | \$03FB-\$03FC | NMI | Non-Maskable Interrupt Handler Vector. | 16-bit pointer executed when NMI (non-maskable interrupt) signal is asserted. Used for system-critical interrupt handling. Present in all Apple II variants. |
-| \$03FE-\$03FF | IRQLOC | Interrupt Request Handler Vector. | 16-bit pointer executed when IRQ (maskable interrupt) signal is asserted. Default points to firmware IRQ handler. Present in all Apple II variants. |
+| \$03FE-\$03FF | <a id="irqloc"></a>IRQLOC | Interrupt Request Handler Vector. | 16-bit pointer executed when IRQ (maskable interrupt) signal is asserted. Default points to firmware IRQ handler. Present in all Apple II variants. |
 | \$047B | <a id="oldch"></a>OLDCH | Old Horizontal Cursor Position. | Stores the previous horizontal cursor position; used in 80-column mode to track cursor movement. |
 | \$04FB | <a id="vmode"></a>VMODE | Video Mode Byte. | 80-column mode flag; used internally to track whether 80-column mode is enabled. |
 | \$057B | <a id="ourch"></a>OURCH | Our Horizontal Cursor Position. | Stores the current horizontal cursor position in 80-column mode; used internally by 80-column display routines. |
@@ -8676,27 +8701,27 @@ Access is via memory-mapped I/O in the slot I/O area (\$C000-\$C0FF).
 
 | Address | Slot-Relative | Name | Function |
 |----|----|----|----|
-| \$C080 + n\*\$100 | \$80 | IWM_PH0_OFF | Stepper motor phase 0 off |
-| \$C081 + n\*\$100 | \$81 | IWM_PH0_ON | Stepper motor phase 0 on |
-| \$C082 + n\*\$100 | \$82 | IWM_PH1_OFF | Stepper motor phase 1 off |
-| \$C083 + n\*\$100 | \$83 | IWM_PH1_ON | Stepper motor phase 1 on |
-| \$C084 + n\*\$100 | \$84 | IWM_PH2_OFF | Stepper motor phase 2 off |
-| \$C085 + n\*\$100 | \$85 | IWM_PH2_ON | Stepper motor phase 2 on |
-| \$C086 + n\*\$100 | \$86 | IWM_PH3_OFF | Stepper motor phase 3 off |
-| \$C087 + n\*\$100 | \$87 | IWM_PH3_ON | Stepper motor phase 3 on |
-| \$C088 + n\*\$100 | \$88 | IWM_MOTOR_OFF | Stop drive motor |
-| \$C089 + n\*\$100 | \$89 | IWM_MOTOR_ON | Start drive motor |
-| \$C08A + n\*\$100 | \$8A | IWM_SELECT_DRIVE_1 | Select drive 1 |
-| \$C08B + n\*\$100 | \$8B | IWM_SELECT_DRIVE_2 | Select drive 2 |
-| \$C08C + n\*\$100 | \$8C | IWM_Q6_OFF | Read mode (prepare data read) |
-| \$C08D + n\*\$100 | \$8D | IWM_Q6_ON | Write mode (prepare write) |
-| \$C08E + n\*\$100 | \$8E | IWM_Q7_OFF | Read Write-Protect / Read mode |
-| \$C08F + n\*\$100 | \$8F | IWM_Q7_ON | Write mode / Write data |
+| \$C080 + n\*\$100 | \$80 | PH0_OFF | Stepper motor phase 0 off |
+| \$C081 + n\*\$100 | \$81 | PH0_ON | Stepper motor phase 0 on |
+| \$C082 + n\*\$100 | \$82 | PH1_OFF | Stepper motor phase 1 off |
+| \$C083 + n\*\$100 | \$83 | PH1_ON | Stepper motor phase 1 on |
+| \$C084 + n\*\$100 | \$84 | PH2_OFF | Stepper motor phase 2 off |
+| \$C085 + n\*\$100 | \$85 | PH2_ON | Stepper motor phase 2 on |
+| \$C086 + n\*\$100 | \$86 | PH3_OFF | Stepper motor phase 3 off |
+| \$C087 + n\*\$100 | \$87 | PH3_ON | Stepper motor phase 3 on |
+| \$C088 + n\*\$100 | \$88 | MOTOR_OFF | Stop drive motor |
+| \$C089 + n\*\$100 | \$89 | MOTOR_ON | Start drive motor |
+| \$C08A + n\*\$100 | \$8A | SELECT_DRIVE_1 | Select drive 1 |
+| \$C08B + n\*\$100 | \$8B | SELECT_DRIVE_2 | Select drive 2 |
+| \$C08C + n\*\$100 | \$8C | Q6_OFF | Read mode (prepare data read) |
+| \$C08D + n\*\$100 | \$8D | Q6_ON | Write mode (prepare write) |
+| \$C08E + n\*\$100 | \$8E | Q7_OFF | Read Write-Protect / Read mode |
+| \$C08F + n\*\$100 | \$8F | Q7_ON | Write mode / Write data |
 
 **Slot-Relative Addressing Formula:**
 
-The actual memory address for any IWM register depends on the disk
-controller’s slot location:
+The actual memory address for any disk controller register depends on
+the controller’s slot location:
 
     Register Address = $C000 + (slot_number << 8) + register_offset
                      = $Cn00 + register_offset
@@ -9167,9 +9192,8 @@ The DISK ROM has minimal error handling:
 
 #### Related Documentation
 
-- **IWM Hardware:** See Apple Disk II Technical Manual
+- **Disk II Hardware:** See Apple Disk II Technical Manual
 - **6+2 Encoding:** See Beneath Apple ProDOS (Weiss & Luther)
-- **Boot Sequence:** See AppleWin emulator documentation
 
 #### Memory Locations
 
@@ -9179,32 +9203,25 @@ The DISK ROM has minimal error handling:
 
 ------------------------------------------------------------------------
 
-### Implementation Considerations
+### Implementation Requirements
 
-#### For Emulator Development
+Implementing a compatible Disk II controller ROM requires:
 
-Emulating the DISK ROM requires:
+1.  **Controller Register Interface:** Correct usage of \$C0n0-\$C0nF
+    soft switches for stepper motor, drive motor, and data I/O
+2.  **6+2 Encoding Algorithm:** Correct implementation of disk data
+    encoding/decoding
+3.  **Sector Format Knowledge:** Understanding of
+    track/sector/address/data field layout
+4.  **Logic State Sequencer Synchronization:** Proper timing for write
+    operations (critical for hardware compatibility)
+5.  **Boot Protocol:** Load 256 bytes from track 0, sector 0 to
+    \$0800-\$08FF and execute at \$0801
 
-1.  **IWM Hardware Emulation:** Stepper motor, drive motor, read/write
-    head
-2.  **Disk Image Format:** Support for 140KB 5.25” disk images
-3.  **6+2 Encoding:** Decode sector data correctly
-4.  **Timing:** Approximate boot timing (~1-2 seconds)
-
-#### For Clean-Room Implementation
-
-A clean-room DISK ROM would need:
-
-1.  **IWM Interface:** Understanding of each hardware register’s
-    function
-2.  **6+2 Algorithm:** Correct implementation of encoder/decoder
-3.  **Sector Format:** Track/sector/data layout on disk
-4.  **Timing:** Stepper motor stepping speed and settle time
-5.  **Compatibility:** Must work with standard 140KB disk images
+See the detailed sections below for complete technical specifications of
+each requirement.
 
 ------------------------------------------------------------------------
-
-### Disk II ROM References
 
 ### Disk II ROM References
 
