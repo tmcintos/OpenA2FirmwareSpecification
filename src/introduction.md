@@ -43,24 +43,36 @@ Within each routine entry, you will find:
 
 ### Compatibility Philosophy
 
-This specification documents the **firmware API contract** that provides software compatibility across 8-bit Apple II family systems. The goal is to enable ROM implementations that can run software written for any Apple II variant (II, II+, IIe, IIc) without requiring software to detect which model it's running on.
+This specification defines a **capability‑based firmware API contract** for the 8‑bit Apple II family. Its purpose is to ensure that software can rely on a stable set of behaviors, regardless of whether the firmware is a historical ROM, a modern re‑implementation, a subset ROM, or a superset ROM. Implementations may target any hardware model or emulator, provided they truthfully advertise the capabilities they fully support.
 
-**Key Principles:**
+#### Key Principles
 
-1. **Consistent Entry Points** - Same firmware routine addresses provide compatible functionality across models
-2. **Hardware-Adaptive Implementation** - ROMs detect their host hardware and implement variant-appropriate behavior internally
-3. **Unified Programming Interface** - Software can depend on documented entry point behavior without variant-specific code paths
+- **Stable Firmware Contract**  
+  Standard entry points, calling conventions, and behavioral guarantees form the core compatibility layer shared across all implementations.
 
-**Implementation Approach:**
+- **Hardware‑First Feature Detection**  
+  When hardware provides reliable, backward‑compatible feature detection (e.g., IIe soft switches, auxiliary memory behavior), software should use those mechanisms rather than relying solely on ROM identification bytes.
 
-A ROM following this specification:
-- Detects host hardware capabilities using documented identification methods
-- Implements the documented API contract appropriate for available hardware features  
-- Provides consistent external behavior so application software remains portable
-- Uses internal branching when hardware differences require different approaches
+- **Truthful Capability Advertisement**  
+  ROM ID bytes must represent the **lowest historical capability tier** for which the firmware implements the complete and correct behavior defined by this specification. Implementations may provide additional features beyond that tier, but must not claim a tier whose full behavior they do not implement.
 
-**Example:** The Home routine ($FC58) clears the screen on all variants with the same entry point and register contract, but internally:
-- On IIe/IIc with 80-column support: clears both main and auxiliary display memory
-- On II/II+: clears only main display memory
+- **Support for Subset and Superset ROMs**  
+  Implementations are not required to match any historical Apple II ROM. A firmware image may omit rarely used features, add new ones, or combine capabilities in non‑historical ways, as long as it fully implements the tier it advertises and accurately reports any additional capabilities.
 
-This design principle enables clean, maintainable ROM implementations suitable for reproduction systems while preserving software compatibility with the historical Apple II software library.
+- **Contract Fidelity**  
+  All implemented routines must honor the documented register usage, memory effects, and observable behavior. Partial or inconsistent implementations of advertised features are not permitted.
+
+#### Implementation Requirements
+
+- **ID Bytes**  
+  Must identify the lowest historical capability tier for which the firmware provides a complete implementation. For example, a ROM that omits IIe‑specific firmware features must advertise II or II+, even if running on IIe‑class hardware.
+
+- **Capability APIs**  
+  Implementations may expose additional capabilities beyond the advertised tier. These capabilities must be discoverable through hardware probing or through any firmware‑level APIs defined in this specification. Future revisions may introduce additional capability APIs for finer‑grained detection.
+
+- **API Contract Compliance**  
+  All implemented entry points must behave exactly as documented, including register conventions, side effects, and memory interactions.
+
+#### Resulting Behavior
+
+This philosophy ensures that software relying on proper feature detection — using hardware probes where available and ROM‑advertised capability tiers where necessary — will operate correctly on any compliant firmware implementation, whether historical, minimal, extended, or custom.
