@@ -17,7 +17,7 @@ This section documents the official Apple hardware identification methods as spe
 
 - **Apple II** (1977) - Original model, 6502 CPU @ 1 MHz, 4KB-48KB RAM, cassette interface
 - **Apple II+** (1979) - 6502 CPU @ 1 MHz, enhanced ROM, Applesoft BASIC, auto-start ROM
-- **Apple IIe** (1983) - 6502 or 65C02 CPU @ 1.023 MHz, 64K-128K RAM, auxiliary memory support, lowercase, 80-column capability
+- **Apple IIe** (1983) - 6502 or 65C02 CPU @ 1.023 MHz, 64K RAM or 128K RAM with auxiliary memory support (requires Extended 80-Column Card), lowercase, 80-column text capability (requires 80-Column Card)
 - **Apple IIe Enhanced** (1985) - 65C02 CPU, enhanced ROM, improved monitor, additional routines
 - **Apple IIc** (1984) - 65C02 CPU @ 1.023 MHz, integrated design, 128K RAM, built-in peripherals, ROM banking
 - **Apple IIc Plus** (1988) - 65C02 CPU @ 4 MHz, final 8-bit model, accelerated processor, enhanced instruction set, cache memory

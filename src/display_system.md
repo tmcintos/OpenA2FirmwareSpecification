@@ -9,7 +9,7 @@ The Apple II family provides multiple display modes for text and graphics output
 **Text Modes:**
 
 - **40-Column Text**: Standard text mode, 40 characters × 24 rows
-- **80-Column Text**: Available on IIe/IIc with appropriate hardware, 80 characters × 24 rows
+- **80-Column Text**: Standard on IIc and available on IIe with 80-column card, 80 characters × 24 rows
 
 **Graphics Modes:**
 

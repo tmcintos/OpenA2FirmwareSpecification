@@ -22,19 +22,19 @@ The Apple II architecture is characterized by:
 
 **Memory:**
 
-- 48KB to 128KB RAM depending on model and configuration
+- 4KB to 128KB RAM depending on model and configuration
 - 8KB to 32KB ROM containing firmware and system software
 - Bank-switched memory expansion (language card, auxiliary RAM)
 
 **Display:**
 
 - Text modes:
-	- 40-column or
-	- 80-column (IIe/IIc with appropriate hardware)
+	- 40-column
+	- 80-column (IIc standard; IIe with 80-column card)
 - Graphics modes:
-	- Low-resolution (40×48),
+	- Low-resolution (40×48)
 	- High-resolution (280×192)
-	- Double high-resolution (560×192) on IIe/IIc with 128K RAM
+	- Double high-resolution (560×192) on IIc and on IIe with 128K
 - Memory-mapped video with hardware support for page flipping
 
 **I/O:**
