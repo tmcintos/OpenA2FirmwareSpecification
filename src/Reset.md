@@ -20,7 +20,7 @@ This routine, called by the processor's reset vector, initializes the system and
 
 4. **Transfer Control:**
    - If cold start is required: Jumps to [PwrUp](#pwrup-faa6)
-   - If warm start: Jumps to the [User Reset Vector](#user-reset-vector) at ($03F2-$03F3)
+   - If warm start: Jumps to the address in [SOFTEV](#softev) ($03F2-$03F3)
 
 **Input:**
 
@@ -29,7 +29,7 @@ This routine, called by the processor's reset vector, initializes the system and
      *   X: N/A
      *   Y: N/A
 *   **Memory:**
-     *   [SOFTEV](#user-reset-vector) (address $03F2-$03F3): User soft entry vector; checked to determine warm vs cold start
+     *   [SOFTEV](#softev) (address $03F2-$03F3): User soft entry vector; checked to determine warm vs cold start
      *   [PWREDUP](#validity-check-byte) (address $03F4): Validity byte; used to verify SOFTEV integrity
 
 **Output:**
@@ -53,7 +53,7 @@ This routine, called by the processor's reset vector, initializes the system and
 
 *   Clears [KBDSTRB](#kbdstrb-c010) to acknowledge any pending keyboard input
 *   Calls [Bell](#bell-ff3a) to sound system bell (aids in detecting key bounces during reset)
-*   May transfer control to [PwrUp](#pwrup-faa6) for cold start, or to the [User Reset Vector](#user-reset-vector)
+*   May transfer control to [PwrUp](#pwrup-faa6) for cold start, or to the address in [SOFTEV](#softev)
 *   IIc variant: Checks button state (BUTN0, BUTN1) to enable exerciser mode if both apple keys are pressed
 *   Calls variant-specific initialization routines ([SetVid](#setvid-fe93), [SetKbd](#setkbd-fe89), or ZZQUIT)
 
@@ -90,7 +90,7 @@ See the documentation for called routines ([SetNorm](#setnorm-fe84), [Init](#ini
 **See also:**
 
 *   [PwrUp](#pwrup-faa6)
-*   [User Reset Vector](#user-reset-vector)
+*   [SOFTEV](#softev)
 *   [SetNorm](#setnorm-fe84)
 *   [Init](#init-fb2f)
 *   [SetVid](#setvid-fe93)

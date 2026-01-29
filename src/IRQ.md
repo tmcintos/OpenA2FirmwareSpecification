@@ -31,4 +31,4 @@ This routine serves as a jump to the system's interrupt-handling routines for IR
 
 **See also:**
 
-*   [User IRQ Hook](#user-irq-hook)
+*   [IRQLOC](#irqloc)

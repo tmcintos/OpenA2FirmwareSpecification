@@ -11,7 +11,7 @@ This routine calculates a Validity-Check byte for the current reset vector and s
     *   X: N/A
     *   Y: N/A
 *   **Memory:**
-    *   [User Reset Vector](#user-reset-vector) (address $03F2-$03F3): Pointer to the routine to be executed after a warm start.
+    *   [SOFTEV](#softev) (address $03F2-$03F3): Pointer to the routine to be executed after a warm start.
 
 **Output:**
 
