@@ -1,4 +1,4 @@
-### Hardware Variants and Identification
+### <a id="hardware-variants-and-identification"></a>Hardware Variants and Identification
 
 #### Overview
 

@@ -1,4 +1,4 @@
-## Interrupt Handling
+## <a id="interrupt-handling"></a>Interrupt Handling
 
 ### Overview
 
@@ -388,7 +388,7 @@ Interrupt handlers should be in:
 
 ### See Also
 
-- **[BRK ($FE75)](#brk-fe75)** - BRK instruction handler entry point
+- **[Break ($FA4C)](#break-fa4c)** - BRK instruction handler entry point
 - **[System Vectors](#system-boot-and-initialization)** - Interrupt vector initialization
 - **[Auxiliary RAM and Memory Soft Switches](#auxiliary-ram-and-memory-soft-switches)** - Memory state encoding
 - **[ROM Organization and Banking](#rom-organization-and-banking)** - Language card and ROM banking state
