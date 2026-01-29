@@ -8,8 +8,8 @@ The goal of this project is to produce a comprehensive technical reference manua
 
 **View the latest specification:**
 
-- [OpenA2FirmwareSpecification.md](https://tmcintos.github.io/OpenA2FirmwareSpecification/OpenA2FirmwareSpecification.md) - Read online (Markdown, rendered by GitHub)
-- [OpenA2FirmwareSpecification.pdf](https://tmcintos.github.io/OpenA2FirmwareSpecification/OpenA2FirmwareSpecification.pdf) - Download PDF
+- [OpenA2FirmwareSpecification.md](https://github.com/tmcintos/OpenA2FirmwareSpecification/blob/main/OpenA2FirmwareSpecification.md) - Read online (rendered by GitHub)
+- [OpenA2FirmwareSpecification.pdf](https://github.com/tmcintos/OpenA2FirmwareSpecification/releases/latest/download/OpenA2FirmwareSpecification.pdf) - Download PDF
 
 Both files are generated from the various Markdown files in the `src` directory.
 
