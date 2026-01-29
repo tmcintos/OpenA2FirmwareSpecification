@@ -43,9 +43,24 @@ Within each routine entry, you will find:
 
 ### Compatibility Philosophy
 
-A correctly-implemented unified ROM following this specification should run software from any Apple II variant without variant detection. If variant-specific code paths are required, it indicates either:
+This specification documents the **firmware API contract** that provides software compatibility across 8-bit Apple II family systems. The goal is to enable ROM implementations that can run software written for any Apple II variant (II, II+, IIe, IIc) without requiring software to detect which model it's running on.
 
-1. The specification is incomplete, or
-2. The implementation has diverged from the documented contract
+**Key Principles:**
 
-This design principle enables clean, maintainable ROM implementations suitable for modern reproduction systems.
+1. **Consistent Entry Points** - Same firmware routine addresses provide compatible functionality across models
+2. **Hardware-Adaptive Implementation** - ROMs detect their host hardware and implement variant-appropriate behavior internally
+3. **Unified Programming Interface** - Software can depend on documented entry point behavior without variant-specific code paths
+
+**Implementation Approach:**
+
+A ROM following this specification:
+- Detects host hardware capabilities using documented identification methods
+- Implements the documented API contract appropriate for available hardware features  
+- Provides consistent external behavior so application software remains portable
+- Uses internal branching when hardware differences require different approaches
+
+**Example:** The Home routine ($FC58) clears the screen on all variants with the same entry point and register contract, but internally:
+- On IIe/IIc with 80-column support: clears both main and auxiliary display memory
+- On II/II+: clears only main display memory
+
+This design principle enables clean, maintainable ROM implementations suitable for reproduction systems while preserving software compatibility with the historical Apple II software library.

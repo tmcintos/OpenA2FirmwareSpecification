@@ -42,26 +42,26 @@ The Disk II controller uses the IWM chip for low-level disk operations. Access i
 
 | Address | Slot-Relative | Name | Function |
 |---------|----------------|------|----------|
-| $C080 + n*$100 | $80 | IWM_PH0_OFF | Stepper motor phase 0 off |
-| $C081 + n*$100 | $81 | IWM_PH0_ON | Stepper motor phase 0 on |
-| $C082 + n*$100 | $82 | IWM_PH1_OFF | Stepper motor phase 1 off |
-| $C083 + n*$100 | $83 | IWM_PH1_ON | Stepper motor phase 1 on |
-| $C084 + n*$100 | $84 | IWM_PH2_OFF | Stepper motor phase 2 off |
-| $C085 + n*$100 | $85 | IWM_PH2_ON | Stepper motor phase 2 on |
-| $C086 + n*$100 | $86 | IWM_PH3_OFF | Stepper motor phase 3 off |
-| $C087 + n*$100 | $87 | IWM_PH3_ON | Stepper motor phase 3 on |
-| $C088 + n*$100 | $88 | IWM_MOTOR_OFF | Stop drive motor |
-| $C089 + n*$100 | $89 | IWM_MOTOR_ON | Start drive motor |
-| $C08A + n*$100 | $8A | IWM_SELECT_DRIVE_1 | Select drive 1 |
-| $C08B + n*$100 | $8B | IWM_SELECT_DRIVE_2 | Select drive 2 |
-| $C08C + n*$100 | $8C | IWM_Q6_OFF | Read mode (prepare data read) |
-| $C08D + n*$100 | $8D | IWM_Q6_ON | Write mode (prepare write) |
-| $C08E + n*$100 | $8E | IWM_Q7_OFF | Read Write-Protect / Read mode |
-| $C08F + n*$100 | $8F | IWM_Q7_ON | Write mode / Write data |
+| $C080 + n*$100 | $80 | PH0_OFF | Stepper motor phase 0 off |
+| $C081 + n*$100 | $81 | PH0_ON | Stepper motor phase 0 on |
+| $C082 + n*$100 | $82 | PH1_OFF | Stepper motor phase 1 off |
+| $C083 + n*$100 | $83 | PH1_ON | Stepper motor phase 1 on |
+| $C084 + n*$100 | $84 | PH2_OFF | Stepper motor phase 2 off |
+| $C085 + n*$100 | $85 | PH2_ON | Stepper motor phase 2 on |
+| $C086 + n*$100 | $86 | PH3_OFF | Stepper motor phase 3 off |
+| $C087 + n*$100 | $87 | PH3_ON | Stepper motor phase 3 on |
+| $C088 + n*$100 | $88 | MOTOR_OFF | Stop drive motor |
+| $C089 + n*$100 | $89 | MOTOR_ON | Start drive motor |
+| $C08A + n*$100 | $8A | SELECT_DRIVE_1 | Select drive 1 |
+| $C08B + n*$100 | $8B | SELECT_DRIVE_2 | Select drive 2 |
+| $C08C + n*$100 | $8C | Q6_OFF | Read mode (prepare data read) |
+| $C08D + n*$100 | $8D | Q6_ON | Write mode (prepare write) |
+| $C08E + n*$100 | $8E | Q7_OFF | Read Write-Protect / Read mode |
+| $C08F + n*$100 | $8F | Q7_ON | Write mode / Write data |
 
 **Slot-Relative Addressing Formula:**
 
-The actual memory address for any IWM register depends on the disk controller's slot location:
+The actual memory address for any disk controller register depends on the controller's slot location:
 
 ```
 Register Address = $C000 + (slot_number << 8) + register_offset
@@ -501,9 +501,8 @@ The DISK ROM has minimal error handling:
 
 #### Related Documentation
 
-- **IWM Hardware:** See Apple Disk II Technical Manual
+- **Disk II Hardware:** See Apple Disk II Technical Manual
 - **6+2 Encoding:** See Beneath Apple ProDOS (Weiss & Luther)
-- **Boot Sequence:** See AppleWin emulator documentation
 
 #### Memory Locations
 
@@ -513,30 +512,19 @@ The DISK ROM has minimal error handling:
 
 ---
 
-### Implementation Considerations
+### Implementation Requirements
 
-#### For Emulator Development
+Implementing a compatible Disk II controller ROM requires:
 
-Emulating the DISK ROM requires:
+1. **Controller Register Interface:** Correct usage of $C0n0-$C0nF soft switches for stepper motor, drive motor, and data I/O
+2. **6+2 Encoding Algorithm:** Correct implementation of disk data encoding/decoding
+3. **Sector Format Knowledge:** Understanding of track/sector/address/data field layout
+4. **Logic State Sequencer Synchronization:** Proper timing for write operations (critical for hardware compatibility)
+5. **Boot Protocol:** Load 256 bytes from track 0, sector 0 to $0800-$08FF and execute at $0801
 
-1. **IWM Hardware Emulation:** Stepper motor, drive motor, read/write head
-2. **Disk Image Format:** Support for 140KB 5.25" disk images
-3. **6+2 Encoding:** Decode sector data correctly
-4. **Timing:** Approximate boot timing (~1-2 seconds)
-
-#### For Clean-Room Implementation
-
-A clean-room DISK ROM would need:
-
-1. **IWM Interface:** Understanding of each hardware register's function
-2. **6+2 Algorithm:** Correct implementation of encoder/decoder
-3. **Sector Format:** Track/sector/data layout on disk
-4. **Timing:** Stepper motor stepping speed and settle time
-5. **Compatibility:** Must work with standard 140KB disk images
+See the detailed sections below for complete technical specifications of each requirement.
 
 ---
-
-### Disk II ROM References
 
 ### Disk II ROM References
 
