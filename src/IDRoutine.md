@@ -5,6 +5,7 @@
 This routine is part of the documented Apple system identification interface for distinguishing 8-bit Apple II systems from 16-bit systems (Apple IIgs). On 8-bit Apple II family computers (Apple II through Apple IIc), this location contains a single return from subroutine (`RTS`) instruction. It immediately returns control to the caller without performing any operations or modifying any registers or memory locations.
 
 **References:**
+
 - Apple II Miscellaneous Technical Note #7: *Apple II Family Identification* (https://prodos8.com/docs/technote/misc/07/)
 - Apple II Miscellaneous Technical Note #2: *Apple II Family Identification Routines 2.2* (https://prodos8.com/docs/technote/misc/02/)
 
@@ -51,5 +52,6 @@ The Apple IIgs (out of scope for this specification) implements actual identific
 **Side Effects:** None on 8-bit Apple II (instruction is just `RTS`).
 
 **See also:**
+
 - [Hardware Variants and Identification](#hardware-variants-and-identification) - Complete hardware detection methods
 - [Hardware Identification Bytes](#identification-byte-locations) - ROM identification byte table

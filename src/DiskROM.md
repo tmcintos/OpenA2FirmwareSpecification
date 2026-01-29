@@ -13,12 +13,14 @@ The Disk II Controller ROM is located at the slot-relative address $Cn00 (where 
 ### Architecture & Memory Layout
 
 #### ROM Address Space
+
 - **Base Address:** $Cn00 (where n = slot number, 1-7)
 - **Typical Slot:** 6 (address $C600)
 - **Size:** 256 bytes ($C600-$C6FF)
 - **Entry Point:** $C600 (when selected as boot ROM)
 
 #### Code Organization
+
 ```
 $C600-$C602   Initialization & setup
 $C603-$C650   6+2 decoder table generation

@@ -14,12 +14,15 @@ The Monitor command system uses a pair of lookup tables at fixed ROM addresses t
 The Monitor is entered through the following entry points:
 
 #### [Mon](#mon-ff65) ($FF65)
+
 Initialization routine that prepares the processor to enter the Monitor. Clears the decimal mode flag, activates the speaker, and transfers control to [MonZ](#monz-ff69).
 
 #### [MonZ](#monz-ff69) ($FF69)
+
 Primary entry point for the System Monitor. Displays the prompt (`*`), reads a command line from the user, and passes control to the Monitor's command-line parser.
 
 #### [MonZ4](#monz4-ff70) ($FF70)
+
 Alternative entry point that bypasses the initial prompt display and mode clearing, going directly to the command parser.
 
 ### Command Structure

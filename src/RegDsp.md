@@ -5,6 +5,7 @@
 This routine displays the contents of the microprocessor's registers and relevant system state information. It is primarily used by the Monitor for debugging and system inspection purposes. The displayed values typically include A, X, Y, and P registers.
 
 **Input:**
+
 *   **Registers:**
     *   A: Undefined.
     *   X: Undefined.
@@ -12,6 +13,7 @@ This routine displays the contents of the microprocessor's registers and relevan
 *   **Memory:** N/A (displays current state from CPU registers and system zero-page locations).
 
 **Output:**
+
 *   **Registers:**
     *   A: Undefined.
     *   X: Undefined.

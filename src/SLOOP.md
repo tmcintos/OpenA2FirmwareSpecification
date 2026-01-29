@@ -5,6 +5,7 @@
 This routine implements the disk controller slot search loop, responsible for finding and booting from a startup device. It searches for a disk controller beginning at the peripheral ROM space (if RAM disk, ROM disk, or AppleTalk has not been selected via the Control Panel as the startup device). It also considers SmartPort code for RAM/ROM disk or AppleTalk boot code in slot 7, depending on Control Panel settings. If a startup device is found, it transfers execution to that device's ROM space. If no startup device is found, the message "Check Startup Device" appears on the screen. This routine does not return to the calling program.
 
 **Input:**
+
 *   **Registers:**
     *   A: Undefined.
     *   X: Undefined.

@@ -3,6 +3,7 @@
 **Description:**
 
 This is the primary routine for reading a complete line of keyboard input. It begins by calling [CROut](#crout-fd8e) to output a carriage return. Subsequently, it displays a prompt character (if A is not N/A), and then repeatedly calls [RdKey](#rdkey-fd0c) (with escape mode) to get characters, storing them in [INBUF](#inbuf). It supports editing features such as:
+
 *   Left Arrow (Control-H): Moves cursor left, places backspace (`$88`) in [INBUF](#inbuf).
 *   Control-X or backspace to column 1: Calls [GetLnZ](#getlnz-fd67) for carriage return and restarts `GetLnZ`, discarding current input. Prints backslash if Control-X pressed.
 *   Right Arrow (Control-U): Stores character at cursor position in [INBUF](#inbuf) instead of `$95`.
