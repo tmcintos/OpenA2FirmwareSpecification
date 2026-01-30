@@ -101,7 +101,7 @@ $(DETAILED_ENTRY_POINTS_HEADER):
 # Combine all individual entry point files into single section
 $(DETAILED_ENTRY_POINTS_TMP): $(ROUTINE_FILES)
 	mkdir -p $(TEMP_DIR)
-	touch $(DETAILED_ENTRY_POINTS_TMP)
+	: > $(DETAILED_ENTRY_POINTS_TMP)
 	for f in $(ROUTINE_FILES); do \
 		echo "\n\n" >> $(DETAILED_ENTRY_POINTS_TMP); \
 		cat $$f >> $(DETAILED_ENTRY_POINTS_TMP); \
