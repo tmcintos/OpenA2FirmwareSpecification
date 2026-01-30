@@ -8,7 +8,7 @@ In addition to the main system firmware documented in previous sections, Apple I
 
 **Key Functions:**
 
-- Initialize disk controller (IWM - Integrated Woz Machine) hardware
+- Initialize disk controller hardware (Disk II controller latch/phase/motor controls)
 - Generate 6+2 encoding decoder table for disk data
 - Seek disk head to track 0
 - Read track 0, sector 0 (boot sector) from disk
@@ -22,7 +22,7 @@ In addition to the main system firmware documented in previous sections, Apple I
 
 **Hardware Accessed:**
 
-- IWM Control Registers ($C080-$C08F range) - Stepper motor and drive control
+- Disk II controller I/O addresses ($C080-$C08F in the slot I/O space) - Stepper motor and drive control
 - System RAM ($0300-$0BFF) - Decoder tables and data buffers
 
 **Memory Usage:**

@@ -34,9 +34,9 @@ $C6FC-$C6FF   Spare bytes
 
 ### Hardware Interface
 
-#### IWM (Integrated Woz Machine) Registers
+#### Disk II Controller I/O Addresses
 
-The Disk II controller uses the IWM chip for low-level disk operations. Access is via memory-mapped I/O in the slot I/O area ($C000-$C0FF).
+The Disk II controller is controlled via memory-mapped I/O in the slot I/O area ($C000-$C0FF). The registers at offsets $80-$8F are latches that control the stepper phases, motor, drive select, and the Q6/Q7 read/write mode lines.
 
 #### Drive Control Registers
 
@@ -83,8 +83,8 @@ Where:
 
 ```
 ; Assume X = (slot_number << 4), e.g., X = $60 for slot 6
-LDA $C080,X     ; Load from appropriate slot's IWM register
-STA $C089,X     ; Store to appropriate slot's motor-on register
+LDA $C080,X     ; Access controller register in the selected slot
+STA $C089,X     ; Turn motor on (slot-relative)
 ```
 
 This allows the ROM to work in any slot without hardcoding addresses. Absolute addressing (e.g., `LDA $C680`) would restrict the ROM to a specific slot.
@@ -95,7 +95,7 @@ This allows the ROM to work in any slot without hardcoding addresses. Absolute a
 |---------|---|---|---|---|
 | $C08C + n*$100 | $8C | DATA_IN | Read | Read data from disk (requires Q6=0, Q7=0) |
 | $C08D + n*$100 | $8D | STATUS | Read/Write | Check write-protect (read); initialize Q6 (write) |
-| $C08E + n*$100 | $8E | IWM_SEQUENCER | Read/Write | Reset state sequencer (read); write-protect check (read) |
+| $C08E + n*$100 | $8E | SEQUENCER_RESET | Read | Reset state sequencer (read); write-protect check (read) |
 | $C08F + n*$100 | $8F | DATA_OUT | Write | Write data to disk (requires indexed addressing) |
 
 **Data Transfer:**
@@ -218,7 +218,7 @@ This elegant mechanism allows peripheral ROMs to be completely slot-independent;
 | Address | Name | Purpose |
 |---------|------|---------|
 | $26-$27 | data_ptr | Pointer to BOOT1 data buffer location |
-| $2B | slot_index | Slot number << 4 (for IWM register addressing) |
+| $2B | slot_index | Slot number << 4 (for slot-relative controller I/O addressing) |
 | $3C | bits | Temporary storage for bit manipulation during 6+2 decoding |
 | $3D | sector | Sector number being read |
 | $40 | found_track | Track found during seek |
@@ -281,7 +281,7 @@ The main boot entry point. When invoked (typically via reset vector jumping to $
 
 **Side Effects:**
 
-*   IWM hardware registers accessed (stepper motor, drive motor)
+*   Controller I/O accessed (stepper phases, drive select, motor control)
 *   Disk drive motor started and stopped
 *   Disk head positioned to track 0
 *   System memory modified ($0300-$0BFF range)
@@ -330,7 +330,7 @@ Core disk read routine. Reads a single 256-byte sector from the currently select
     - sector ($3D): Sector number to find and read (0-15)
     - track ($41): Track number being read
     - CONV_TAB ($0356-$03D5): Must be initialized with 6+2 decoder table
-    - IWM registers accessible at $C000 + slot offset
+    - Controller I/O accessible via the slot I/O space (offsets $80-$8F)
 
 **Output:**
 
@@ -346,7 +346,7 @@ Core disk read routine. Reads a single 256-byte sector from the currently select
 
 **Side Effects:**
 
-*   IWM registers accessed for disk read
+*   Controller I/O accessed for disk read
 *   Timing-sensitive disk operations performed
 *   Disk head may seek if sector not on current track
 *   Memory access via indirect addressing (data_ptr)
@@ -405,7 +405,7 @@ Slot Detection & Boot ROM Selection
 DISK ROM Entry ($C600) called via relative jump ($Cn01)
     ↓
 [ENTRY routine - as documented above]
-    ├── Initialize IWM hardware
+    ├── Initialize disk controller hardware
     ├── Generate 6+2 decoder table
     ├── Seek to track 0
     ├── Read track 0, sector 0 (boot sector)
@@ -429,7 +429,7 @@ The DISK ROM reads disk sectors and stores them in the BOOT1 buffer ($0800-$0BFF
   - BOOT1 code includes its own size as first byte
   - This allows variable-sized boot code
 
-#### IWM Timing
+#### Disk Timing
 
 Critical timing operations use the MON\_WAIT routine ($FCA8):
 
@@ -446,22 +446,22 @@ Critical timing operations use the MON\_WAIT routine ($FCA8):
 The DISK ROM is slot-independent. When placed in slot n:
 
 - Entry address: $Cn00 (not $C600)
-- IWM registers accessed: $C080 + (n << 4)
+- Controller I/O accessed: $C080 + (n << 4)
 - Invoked as: `JMP $Cn01` (relative jump to actual $C600 entry)
 
 #### Typical Slot 6 Configuration
 
 - **ROM Address:** $C600-$C6FF
-- **IWM Base:** $C600 (phasing registers at $C680-$C68F)
+- **Controller I/O base (slot-relative):** $Cn80 (i.e., $C680-$C68F in slot 6)
 - **Slot Index (X register):** $60 (6 << 4)
 
 #### Multi-Slot Support
 
 The Disk II controller can be placed in any slot (typically 6 or 5):
 
-- Slot 5: ROM at $C500-$C5FF, IWM at $C580-$C58F
-- Slot 6: ROM at $C600-$C6FF, IWM at $C680-$C68F
-- Slot 7: ROM at $C700-$C7FF, IWM at $C780-$C78F
+- Slot 5: ROM at $C500-$C5FF, controller I/O at $C580-$C58F
+- Slot 6: ROM at $C600-$C6FF, controller I/O at $C680-$C68F
+- Slot 7: ROM at $C700-$C7FF, controller I/O at $C780-$C78F
 
 ---
 
