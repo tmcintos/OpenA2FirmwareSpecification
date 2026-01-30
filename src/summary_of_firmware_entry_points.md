@@ -20,16 +20,16 @@
 | [ClrTop](#clrtop-f836) | $F836 | Clears the upper 40 lines of the Lo-Res graphics display to black. |
 | [COut](#cout-fded) | $FDED | Primary entry point for standard character output, indirect calls to active output routine. |
 | [COut1](#cout1-fdf0) | $FDF0 | Displays ASCII character at current cursor, advances cursor, handles control characters, applies inverse flag. |
-| [COutZ](#coutz-fdf6) | $FDF6 | Alternative entry point to COutl; identical functionality but does not apply inverse flag at start. |
+| [COutZ](#coutz-fdf6) | $FDF6 | Alternative entry point to COut1; identical except it does not apply inverse mode at entry. |
 | [CR](#cr-fc62) | $FC62 | Executes a carriage return, moving cursor to left edge and then calling LF. |
 | [CROut](#crout-fd8e) | $FD8E | Initiates a carriage return by sending a CR character to standard output. |
-| [CROut1](#crout1-fd8b) | $FD8B | Clear to end of line and send carriage return to standard output,Y,-,Y,FALSE,Screen Output,,clear_to_eol |
+| [CROut1](#crout1-fd8b) | $FD8B | Clears to end of line, then outputs a carriage return via the current standard output. |
 | [Dig](#dig-ff8a) | $FF8A | Converts ASCII hexadecimal digit to 4-bit numerical value. |
 | [FD10](#fd10-fd10) | $FD10 | Indirect jump for standard input, transfers control to routine in KSWL/KSWH. |
 | [GBasCalc](#gbascalc-f847) | $F847 | Calculates 16-bit base address for a specified Lo-Res graphics display row. |
 | [GetCur2](#getcur2-ccad) | $CCAD | Update zero-page horizontal cursor positions (Internal helper). |
 | [GetLn](#getln-fd6a) | $FD6A | Reads a complete line of input from standard input, with editing features. |
-| [GetLn0](#getln0-fd6c) | $FD6C | Display prompt in A register and read a line of text,Y,-,Y,FALSE,Standard Input,Print A + GetLn1, | |
+| [GetLn0](#getln0-fd6c) | $FD6C | Outputs the prompt character in A, then reads a line of input (via GetLn1). |
 | [GetLn1](#getln1-fd6f) | $FD6F | Alternate entry point to GetLn, reads line without displaying a prompt. |
 | [GetLnZ](#getlnz-fd67) | $FD67 | Sends a carriage return, then transfers control to GetLn. |
 | [GetNum](#getnum-ffa7) | $FFA7 | Scans Monitor's input buffer for hex digits, converts to numerical values. |
@@ -92,7 +92,7 @@
 | [SetGr](#setgr-fb40) | $FB40 | Sets display to mixed graphics, clears graphics screen, sets text window top. |
 | [SetInv](#setinv-fe80) | $FE80 | Sets INVFLG to $3F for inverse text output. |
 | [SetKbd](#setkbd-fe89) | $FE89 | Sets input links to point to keyboard input routine KeyIn. |
-| [SetNorm](#setnorm-fe84) | $FE84 | Set inverse flag to display normal characters,Y,-,Y,FALSE,Text window,, |
+| [SetNorm](#setnorm-fe84) | $FE84 | Sets normal text output mode (clears inverse mode). |
 | [SetPwrC](#setpwrc-fb6f) | $FB6F | Calculates Validity-Check byte for reset vector and stores it. |
 | [SetTxt](#settxt-fb39) | $FB39 | Sets display to full-screen text window, updates BASL/BASH. |
 | [SetVid](#setvid-fe93) | $FE93 | Sets output links to point to screen display routine COut1. |
