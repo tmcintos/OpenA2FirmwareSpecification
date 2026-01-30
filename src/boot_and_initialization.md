@@ -36,7 +36,7 @@ The complete boot process follows this sequence:
 
 ### Firmware Reset Routine
 
-The firmware reset entry point (typically $FA62 on IIe/IIc) performs essential initialization:
+The firmware reset entry point initializes the system and decides whether to perform a warm start or cold start. (The entry point address differs across ROM families; see [Reset ($FA62)](#reset-fa62) for the documented contract of the Reset routine in this specification.)
 
 **Required Initialization Steps:**
 
@@ -89,20 +89,52 @@ The firmware reset entry point (typically $FA62 on IIe/IIc) performs essential i
 
 **Cold Start Memory Clearing:**
 
-The firmware clears screen memory and initializes system variables:
+On a cold start, firmware should initialize memory and hardware into a predictable state suitable for the Monitor and for any BASIC ROM that may be present (e.g., a system pairing a historical BASIC ROM with a re-implemented system/monitor ROM).
 
-1. Clear display memory from $BFXX down to $0200
-2. Fill with space characters ($A0 = ASCII space with high bit set)
-3. Avoid overwriting zero page ($00-$FF) and stack ($0100-$01FF)
-4. Initialize soft switches to default state (IIe/IIc)
-5. Set system variables to known values
+A common historical baseline is:
 
-**Implementation approach:**
+- Clear text screen memory and display a “blank” text page (typically by filling text pages with the high-bit-set space character, `$A0`).
+- Initialize the Monitor’s core low-memory workspace and vectors so that standard entry points (input, output, BRK/IRQ, warm start) behave consistently.
 
-- Start from high memory, work down to low memory
-- Use indexed addressing for efficiency
-- Set 80-column switches if appropriate (IIc)
-- Clear auxiliary memory if present (IIe/IIc with 128K)
+Cold-start initialization must avoid overwriting:
+
+- Zero page ($00-$FF)
+- The active stack page ($0100-$01FF)
+
+**Recommendation (compatibility):**
+
+If maximum compatibility with legacy software is desired, clear at least the standard text-page memory region ($0400-$0BFF) to `$A0` and ensure cursor/window state is initialized to a full-screen text window with the cursor at the upper-left.
+
+**Implementation notes:**
+
+- The specific clearing algorithm is an implementation choice, but the observable result should be a usable text display and a consistent initial Monitor/BASIC environment.
+- For performance, historical ROMs typically use indexed addressing and page-oriented loops when clearing contiguous memory ranges.
+- If the implementation supports auxiliary memory banking, it should also ensure the default display and memory mapping state is well-defined at the end of reset.
+
+#### Recommended default low-memory and soft-switch state (cold start)
+
+After cold-start initialization, a compatibility-focused ROM should establish at least the following defaults (exact values may vary by ROM family, but these are common expectations):
+
+- **Text output/window state:**
+  - `[WNDLFT](#wndlft) = 0`
+  - `[WNDWDTH](#wndwdth) = 40` (or 80 only if the implementation enables and supports 80-column mode)
+  - `[WNDTOP](#wndtop) = 0`
+  - `[WNDBTM](#wndbtm) = 23`
+  - `[CH](#ch) = 0`, `[CV](#cv) = 0`
+  - `[INVFLG](#invflg)` set for normal text output
+
+- **Standard I/O hooks:**
+  - `[CSWL/CSWH](#cswl-cswh)` set to the standard screen output routine (see [SetVid](#setvid-fe93))
+  - `[KSWL/KSWH](#kswl-kswh)` set to the standard keyboard input routine (see [SetKbd](#setkbd-fe89))
+
+- **Vectors:**
+  - `[BRKV](#brkv)` set to the default BRK/Break handler
+  - `[IRQLOC](#irqloc)` set to the default IRQ handler (often an immediate `RTI`)
+  - `[SOFTEV](#softev)` set to the default warm-start entry
+
+- **Soft switches (common baseline):**
+  - Text mode selected, page 1 selected, and mixed/graphics modes off unless intentionally entered via a graphics init routine
+  - If auxiliary memory mapping exists, default to “main” mappings (main ZP/stack, main read/write) unless the ROM explicitly boots into an alternate mapping
 
 ### RAM Size Detection
 

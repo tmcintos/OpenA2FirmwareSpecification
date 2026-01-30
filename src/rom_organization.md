@@ -224,14 +224,13 @@ Interrupts can occur during any bank configuration:
 
 #### ROM Banking State Bits
 
-During interrupt handling, the complete memory configuration state (including ROM banking) is encoded for preservation. See **[Memory State Encoding](#memory-state-encoding)** in the Interrupt Handling section for the complete 8-bit encoding table.
+During interrupt handling, firmware must preserve and restore the effective memory mapping, which can include language-card state and banked-ROM state. Many implementations do this by encoding a compact state byte; see **[Memory State Encoding](#memory-state-encoding)** in the Interrupt Handling section for an illustrative historical example.
 
-**ROM banking state bits:**
+**ROM-banking related items commonly captured in such a state value include:**
 
-- Bit D3: Language card RAM enabled
-- Bit D2: Language card bank 1 selected
-- Bit D1: Language card bank 2 selected
-- Bit D0: Alternate ROM bank selected (IIc)
+- Whether language-card RAM is selected for reading (vs ROM)
+- Which language-card bank is selected (if applicable)
+- Whether an alternate ROM bank is selected (banked ROM systems)
 
 #### See Also
 

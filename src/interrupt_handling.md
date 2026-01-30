@@ -173,165 +173,82 @@ Handler must:
 
 ### Memory State Encoding
 
-Firmware uses packed byte to save complete memory configuration:
+If the firmware supports bank-switched memory (auxiliary RAM, language card RAM, banked ROM, etc.), the interrupt entry/exit path must preserve the active memory mapping.
 
-| Bit | Meaning |
-|-----|---------|
-| D7 | 1 if using auxiliary zero page/stack (ALTZP on) |
-| D6 | 1 if 80STORE enabled and PAGE2 on |
-| D5 | 1 if reading from auxiliary RAM (RAMRD) |
-| D4 | 1 if writing to auxiliary RAM (RAMWRT) |
-| D3 | 1 if language card RAM enabled for reading |
-| D2 | Language card bank selection (implementation-specific) |
-| D1 | Language card bank selection (implementation-specific) |
-| D0 | 1 if alternate ROM bank selected (IIc) |
+A common historical technique is to snapshot the active mapping into a compact state byte (often pushed on the stack) so it can be restored before `RTI`. The exact encoding is usually an internal implementation detail (not an externally visible API contract), but it is useful to enumerate what state commonly needs to be preserved.
 
-**Purpose:**
+#### Example historical state-byte encoding (illustrative)
 
-Single-byte encoding minimizes stack usage and allows quick save/restore during interrupt handling.
+Some ROMs encode memory configuration using an 8-bit value along these lines:
+
+| Bit | Meaning (example) |
+|-----|--------------------|
+| D7 | 1 if auxiliary zero page/stack is selected (ALTZP) |
+| D6 | 1 if 80STORE is enabled and PAGE2 is selected |
+| D5 | 1 if reads are mapped to auxiliary RAM (RAMRD) |
+| D4 | 1 if writes are mapped to auxiliary RAM (RAMWRT) |
+| D3 | 1 if language-card RAM is enabled for reading (vs ROM) |
+| D2 | Language-card bank select (implementation-defined) |
+| D1 | Language-card bank select (implementation-defined) |
+| D0 | 1 if an alternate ROM bank is selected (banked ROM systems) |
+
+**Notes:**
+
+- Not all bits are meaningful on all models (e.g., an Apple II without auxiliary RAM has no ALTZP/RAMRD/RAMWRT to preserve).
+- The *spec requirement* is to preserve and restore the effective mapping; the specific bit layout is an implementation choice unless exposed by a documented routine.
 
 ### Interrupt Entry with Auxiliary Memory
 
-**Complete Interrupt Entry Sequence:**
+**Complete Interrupt Entry Sequence (conceptual):**
 
-When interrupt occurs with auxiliary memory configuration active:
+If an interrupt can occur while auxiliary/banked memory mappings are active, the ROM interrupt dispatcher should:
 
-1. **Push Current PC and Status** (hardware automatic)
+1. Save the current CPU state (PC and P are pushed by hardware)
+2. Save enough information to restore the current memory mapping later
+3. Switch to a known-safe mapping for executing the handler (commonly the default “main” mapping)
+4. Run the handler (or dispatch through a RAM vector)
+5. Restore the previous memory mapping and any affected stack state
+6. Return via `RTI`
 
-2. **Read Current Memory State:**
-   - Check all soft switch status registers
-   - Encode into single state byte
-   - Push state byte to stack
-
-3. **Switch to Main Memory:**
-   - STA $C008 ; main zero page/stack
-   - STA $C002 ; read main RAM
-   - STA $C004 ; write main RAM
-
-4. **Save Stack Pointer:**
-   - If was using auxiliary stack, save SP to $0100 (aux)
-   - Switch to main stack
-
-5. **Execute Handler:**
-   - All interrupt handler code uses main memory
-   - Can safely modify main RAM
-   - Can access peripherals normally
-
-6. **Restore Memory State:**
-   - Pop state byte from stack
-   - Decode bits and restore all soft switches
-   - Restore stack pointer if needed
-
-7. **Return from Interrupt:**
-   - RTI instruction
-   - Hardware restores PC and status
-
-**Why Main Memory for Handlers:**
-
-Using main memory for interrupt handling:
-
-- Avoids confusion about which bank contains handler
-- Ensures stack operations access correct memory
-- Prevents recursive bank switching issues
-- Matches system initialization defaults
+This ensures interrupt handlers work correctly regardless of which bank was active at the moment the interrupt occurred.
 
 ### Stack Pointer Preservation
 
-**Problem:**
+If the firmware supports switching the active stack between banks (e.g., auxiliary vs main), the interrupt dispatcher must ensure that:
 
-When ALTZP is on, zero page and stack are in auxiliary memory. Interrupt switches to main zero page/stack, but we need to restore auxiliary stack pointer on exit.
+- Stack pushes/pulls during interrupt handling use the intended stack bank
+- The pre-interrupt stack pointer state is restored before returning with `RTI`
 
-**Solution:**
+#### Illustrative historical example (ALTZP active)
 
-Firmware uses stack pointer save locations:
+On systems where **ALTZP** moves zero page and the stack page ($0100-$01FF) into auxiliary RAM, a common historical approach is:
 
-- **$0100** (aux RAM): Main stack pointer when using aux stack
-- **$0101** (aux RAM): Aux stack pointer when using main stack
+- On interrupt entry, snapshot the current **S** (stack pointer) and record whether the interrupt occurred with ALTZP enabled.
+- If ALTZP was enabled, save **S** into a well-known location in the *auxiliary* stack page (commonly `$0101` in auxiliary RAM) so it can be restored later.
+- Switch to a known-safe mapping for interrupt handling (commonly: main ZP/stack selected, main RAM read/write selected).
+- Load a safe main-memory stack pointer value (commonly `$FF`) before running the handler or dispatching through a RAM vector.
+- On interrupt exit, restore the pre-interrupt memory mapping and, if the interrupt occurred with ALTZP enabled, restore **S** from the saved auxiliary location before returning with `RTI`.
 
-**Procedure:**
+**Why this matters:** if the handler runs while ALTZP remains enabled, the interrupt’s automatic pushes (and any nested pushes/pulls) will use the auxiliary stack page. That can corrupt whatever the interrupted code was using the auxiliary stack for, and it can break handlers that assume monitor/firmware workspace is in main memory.
 
-Before switching stacks in interrupt:
-```
-; Currently using auxiliary stack
-STA $C005    ; Write to auxiliary RAM
-TSX          ; Get current stack pointer
-STX $0101    ; Save in aux $0101
-STA $C004    ; Write to main RAM
-LDX #$FF     ; Restore main SP
-TXS
-```
-
-On interrupt exit:
-```
-STA $C005    ; Write to auxiliary RAM
-LDX $0101    ; Load saved aux SP
-TXS          ; Restore auxiliary stack
-STA $C004    ; Write to main RAM
-RTI
-```
+The exact save locations and switching sequence are implementation choices, but the externally observable requirement is the same: an interrupt must not leave the machine in a different effective mapping or with a different stack pointer than it had at the moment of interrupt entry.
 
 ### Language Card State Preservation
 
-**Language Card Complexity:**
+If the firmware supports a language card (or similar) where enabling RAM write access requires a specific access sequence, the interrupt dispatcher must restore that state correctly before returning.
 
-Language card state requires two-read write-enable sequence. Simply saving soft switch status isn't enough—must recreate exact access pattern.
+In particular, restoring “current mapping” may require more than just replaying a single soft-switch selection; it may require repeating the same enable sequence that established the state (for example, write-enable that requires two successive accesses).
 
-**State Elements:**
+See also:
 
-- Which bank selected (1 or 2)
-- RAM read enabled vs ROM
-- RAM write enabled vs write-protected
+- **[ROM Organization and Banking](#rom-organization-and-banking)** — language card banking, write-enable sequence, and status reads
+- **[I/O and Soft Switches](#io-and-soft-switches)** — language card soft switches and status locations
 
-**Restoration:**
+### ROM Banking State Preservation
 
-Interrupt handler must:
+If the firmware uses banked ROM, the interrupt entry path must ensure the interrupt dispatcher and any required helper routines are reachable when an interrupt occurs.
 
-1. Save bank selection, read enable, write enable state
-2. Restore by accessing appropriate soft switches
-3. For write-enable, perform two reads if needed
-
-**Example State Save:**
-```
-; Read LC state
-LDA $C011    ; RDBANK2 status
-; bit 7 = 1 if bank 2
-LDA $C012    ; RDLCRAM status  
-; bit 7 = 1 if reading RAM
-; (write enable requires tracking or assumption)
-```
-
-**Example State Restore:**
-```
-; Restore bank 2, read/write
-LDA $C08B    ; First read
-LDA $C08B    ; Second read - enables write
-```
-
-### ROM Banking State Preservation (IIc)
-
-**IIc ROM Bank Toggle:**
-
-IIc systems with 32KB ROM use $C028 to toggle banks. State preservation requires:
-
-1. **Determine Current Bank:**
-   - Test known addresses that differ between banks
-   - Or maintain software bank tracking
-
-2. **Switch to Handler Bank:**
-   - Ensure interrupt handler in current bank
-   - Or switch to known bank containing handler
-
-3. **Restore Original Bank:**
-   - Toggle back if changed
-   - Maintain bank count (even=same, odd=opposite)
-
-**Handler Bank Location:**
-
-Interrupt handlers should be in:
-
-- Common ROM area (present in both banks), or
-- Both ROM banks at same address, or
-- Bank 1 (default boot bank)
+Implementations commonly address this by placing the dispatcher in a common region, mirroring it in all banks, or switching banks as part of interrupt entry/exit.
 
 ### Interrupt Handling Implementation Requirements
 
