@@ -19,15 +19,17 @@ The Disk II Controller ROM is located at the slot-relative address $Cn00 (where 
 - **Size:** 256 bytes ($C600-$C6FF)
 - **Entry Point:** $C600 (when selected as boot ROM)
 
-#### Code Organization
+#### Code Organization (Illustrative)
+
+The addresses below describe a common historical layout of the 256-byte Disk II boot ROM. This is **not a required contract**: implementations may organize internal code differently, provided they preserve the externally-observable behavior (entry points, I/O usage, and on-disk format expectations).
 
 ```
-$C600-$C602   Initialization & setup
-$C603-$C650   6+2 decoder table generation
-$C651-$C65B   Blind seek to track 0
-$C65C-$C6D3   Read sector routine (core)
-$C6D4-$C6FB   Decode 6+2 data & loop control
-$C6FC-$C6FF   Spare bytes
+$Cn00-$Cn02   Initialization & setup
+$Cn03-$Cn50   6+2 decoder table generation
+$Cn51-$Cn5B   Blind seek to track 0
+$Cn5C-$CnD3   Read sector routine (core)
+$CnD4-$CnFB   Decode 6+2 data & loop control
+$CnFC-$CnFF   Spare bytes
 ```
 
 ---
@@ -163,40 +165,7 @@ The DISK ROM calls or references:
 
 #### Slot Detection Using IORTS
 
-The Disk II ROM does not require knowledge of which slot it occupies; instead, it can determine its slot at runtime by calling [IORTS](#iorts-ff58) ($FF58). This routine provides a generic mechanism for peripheral ROMs to identify their installed slot:
-
-**Slot Detection Method:**
-
-When a peripheral ROM is executing in slot n (at $Cn00-$CnFF), it can determine its slot number as follows:
-
-1. **Call IORTS via JSR $FF58** - This calls a simple RTS instruction in main firmware
-2. **The return address is pushed to the stack** - The return address ($Cn00 + offset within the ROM) is pushed by JSR
-3. **Read return address high byte** - Extract the high byte from the stack using TSX and indexed addressing
-4. **Convert to slot offset** - Multiply the high byte by 16 (via 4 left shifts) to get the slot offset for indexed I/O addressing
-
-**Assembly Example:**
-
-```
-        JSR     $FF58           ; Call IORTS (pushes return address onto stack)
-        TSX                     ; Transfer S register to X (X = stack offset)
-        LDA     $0100,X         ; Read return address high byte ($Cn) from stack
-        ASL     A               ; Shift left 4 times to convert $Cn to $Cn0
-        ASL     A               ; (multiply by 16 for slot-relative addressing)
-        ASL     A
-        ASL     A
-        TAX                     ; X now = slot_number << 4 (for indexed I/O access)
-```
-
-**Why This Works:**
-
-When the firmware calls the peripheral ROM via `JMP (LOC0)` where LOC0 points to $Cn00, the ROM executes at address $Cn00-$CnFF. When the ROM calls `JSR $FF58` (IORTS):
-
-- The return address ($Cn00 + offset) is automatically pushed onto the 6502 stack
-- IORTS is just an RTS instruction that immediately returns
-- The peripheral ROM can read its own return address from the stack to determine n (the slot number)
-- Converting the high byte via 4 left shifts produces the slot index for use in indexed I/O operations
-
-This elegant mechanism allows peripheral ROMs to be completely slot-independent; they don't need slot information passed in a register or stored in ROM—they determine their own slot by examining the return address on the stack.
+See [IORTS ($FF58)](#iorts-ff58).
 
 ---
 

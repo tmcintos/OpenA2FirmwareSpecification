@@ -304,7 +304,7 @@ See [I/O and Soft Switches](#io-and-soft-switches) for complete soft switch refe
 
 #### See Also
 
-- **[Auxiliary RAM and Memory Soft Switches](#auxiliary-ram-and-memory-soft-switches)** - 80-column and double hi-res details
+- **[I/O and Soft Switches](#io-and-soft-switches)** - 80-column and double hi-res details
 - **[I/O and Soft Switches](#io-and-soft-switches)** - Display control switches
 - **[Memory System](#memory-system)** - Display memory organization
 - **[Home](#home)** - Clear screen routine

@@ -8,13 +8,14 @@ This section documents ROM memory organization, banking mechanisms, and executio
 
 #### ROM Memory Map by Model
 
-**Apple II and II+ (8KB ROM):**
+**Apple II and II+ ($D000-$FFFF window; ROM content varies by firmware revision):**
 
-- **$D000-$FFFF**: 12KB address space
-  - $D000-$F7FF: Integer BASIC ROM (II) or Applesoft BASIC ROM (II+)
+- **$D000-$FFFF**: 12KB address space reserved for firmware and/or bank-switched RAM
   - $F800-$FFFF: Monitor ROM (2KB)
+  - $D000-$F7FF: BASIC interpreter and related routines (implementation- and revision-dependent)
 
-- ROM is read-only, occupies upper 12KB of 64KB address space
+**Note:** Although software sees a 12KB window at $D000-$FFFF, early Apple II firmware revisions may not populate the entire $D000-$F7FF range with ROM (some systems place Integer BASIC primarily in the upper portion of that range, and the lower portion may be unused or occupied by optional ROM).
+
 - Language card (when installed) can shadow this area with RAM
 
 **Apple IIe (16KB ROM):**
@@ -22,7 +23,7 @@ This section documents ROM memory organization, banking mechanisms, and executio
 - **$C100-$C7FF**: Slot peripheral ROM area (can be switched to internal ROM)
 - **$C800-$CFFF**: Internal ROM ($C800-$CFFF, 2KB)
 - **$D000-$FFFF**: Main ROM bank (12KB)
-  - $D000-$F7FF: Applesoft BASIC
+  - $D000-$F7FF: BASIC interpreter (typically Applesoft BASIC on IIe)
   - $F800-$FFFF: Monitor and system routines
 
 - Additional internal ROM overlays available via soft switches
@@ -234,7 +235,7 @@ During interrupt handling, firmware must preserve and restore the effective memo
 
 #### See Also
 
-- **[Auxiliary RAM and Memory Soft Switches](#auxiliary-ram-and-memory-soft-switches)** - RAM banking and soft switches
+- **[I/O and Soft Switches](#io-and-soft-switches)** - RAM banking and soft switches
 - **[Memory System](#memory-system)** - Complete memory architecture
 - **[Interrupt Handling](#interrupt-handling)** - Interrupt context preservation
 - **[Hardware Variants and Identification](#hardware-variants-and-identification)** - Model-specific capabilities

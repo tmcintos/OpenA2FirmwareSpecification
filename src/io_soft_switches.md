@@ -110,14 +110,6 @@ When ON, PAGE2 overrides RAMRD/RAMWRT for display memory only, enabling 80-colum
 
 - **$C010** (R/W): Clear keyboard strobe (clears bit 7 of KBD)
 
-**RDBNK2 - Bank 2 Indicator (IIe):**
-
-- **$C011** (R7): Read language card bank status (1=bank 2, 0=bank 1)
-
-**RDLCRAM - Language Card RAM Read:**
-
-- **$C012** (R7): Read LC RAM status (1=reading RAM, 0=reading ROM)
-
 **Usage:**
 ```
 LDA $C000    ; Read keyboard
@@ -219,7 +211,13 @@ On IIe/IIc, AN3 also controls double hi-res:
 
 #### Language Card Soft Switches
 
-The language card uses a two-read write-enable mechanism in the $C080-$C08F range:
+The language card uses a two-read write-enable mechanism in the $C080-$C08F range.
+
+**Related status reads (IIe):**
+
+- **$C011** (R7) **RDBNK2**: 1=language card bank 2 selected, 0=bank 1
+- **$C012** (R7) **RDLCRAM**: 1=reading language-card RAM, 0=reading ROM
+
 
 **Bank 2 Switches:**
 
@@ -340,6 +338,6 @@ See [ROM Organization and Banking](#rom-organization-and-banking) for cross-bank
 
 - **[Display System](#display-system)** - Display modes and soft switch combinations
 - **[Memory System](#memory-system)** - Memory organization
-- **[Auxiliary RAM and Memory Soft Switches](#auxiliary-ram-and-memory-soft-switches)** - Extended memory details
+- **[Memory System](#memory-system)** - Auxiliary RAM organization and usage
 - **[ROM Organization and Banking](#rom-organization-and-banking)** - Language card and ROM banking
 - **[Hardware Variants and Identification](#hardware-variants-and-identification)** - Model-specific features

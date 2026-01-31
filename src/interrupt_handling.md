@@ -307,5 +307,5 @@ Implementations commonly address this by placing the dispatcher in a common regi
 
 - **[Break ($FA4C)](#break-fa4c)** - BRK instruction handler entry point
 - **[System Vectors](#system-boot-and-initialization)** - Interrupt vector initialization
-- **[Auxiliary RAM and Memory Soft Switches](#auxiliary-ram-and-memory-soft-switches)** - Memory state encoding
+- **[I/O and Soft Switches](#io-and-soft-switches)** - Memory state encoding
 - **[ROM Organization and Banking](#rom-organization-and-banking)** - Language card and ROM banking state

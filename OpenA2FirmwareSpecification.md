@@ -9,15 +9,16 @@ title: Open A2 Firmware Specification
 
 ## Technical Reference Manual for 8-bit Apple II Family ROM
 
-**Document Version:** 0.1.4 **Date:** January 2026  
+**Document Version:** 0.1.5 **Date:** January 2026  
 **Status:** Technical Reference
 
 ------------------------------------------------------------------------
 
 This document provides a detailed technical specification for 8-bit
 system firmware in the 6502-based Apple II family. It is intended for
-developers creating compatible software, implementing clean-room ROM
-versions, or seeking to understand the documented firmware contract.
+developers creating compatible software, implementing clean-room
+firmware images, or seeking to understand the documented firmware
+contract.
 
 ------------------------------------------------------------------------
 
@@ -45,11 +46,11 @@ variant (Apple II, II+, IIe, IIc) can reliably depend upon.
 
 The specification enables:
 
-- Development of compatible ROMs in space-constrained configurations (4K
-  minimum to full 32K banked)
+- Development of compatible firmware images in space-constrained
+  configurations (4K minimum to full 32K banked)
 - Understanding of the firmware contract without requiring access to
-  proprietary Apple source code
-- Clean-room implementation of ROM components
+  proprietary source code
+- Clean-room implementation of firmware components
 - Software compatibility verification
 
 ### How to Use This Document
@@ -73,7 +74,7 @@ understanding, from high-level architecture to detailed specifications:
 5.  **Summary of Firmware Entry Points** - Quick reference table of all
     entry points with addresses
 6.  **Detailed Firmware Entry Points** - Complete documentation of all
-    system ROM routines with:
+    system firmware routines with:
     - Input/output register contracts
     - Memory effects and side effects
     - Internal dependencies and call chains
@@ -95,38 +96,71 @@ Within each routine entry, you will find:
 
 ### Compatibility Philosophy
 
-This specification documents the **firmware API contract** that provides
-software compatibility across 8-bit Apple II family systems. The goal is
-to enable ROM implementations that can run software written for any
-Apple II variant (II, II+, IIe, IIc) without requiring software to
-detect which model it’s running on.
+This specification defines a **capability‑based firmware API contract**
+for the 8‑bit Apple II family. Its purpose is to ensure that software
+can rely on a stable set of behaviors, regardless of whether the
+firmware is a historical ROM, a modern re‑implementation, a subset ROM,
+or a superset ROM. Implementations may target any hardware model or
+emulator, provided they truthfully advertise the capabilities they fully
+support.
 
-**Key Principles:**
+#### Key Principles
 
-1.  **Consistent Entry Points** - Same firmware routine addresses
-    provide compatible functionality across models
-2.  **Hardware-Adaptive Implementation** - ROMs detect their host
-    hardware and implement variant-appropriate behavior internally
-3.  **Unified Programming Interface** - Software can depend on
-    documented entry point behavior without variant-specific code paths
+- **Stable Firmware Contract**  
+  Standard entry points, calling conventions, and behavioral guarantees
+  form the core compatibility layer shared across all implementations.
 
-**Implementation Approach:**
+- **Hardware‑First Feature Detection**  
+  When hardware provides reliable, backward‑compatible feature detection
+  (e.g., IIe soft switches, auxiliary memory behavior), software should
+  use those mechanisms rather than relying solely on ROM identification
+  bytes.
 
-A ROM following this specification: - Detects host hardware capabilities
-using documented identification methods - Implements the documented API
-contract appropriate for available hardware features  
-- Provides consistent external behavior so application software remains
-portable - Uses internal branching when hardware differences require
-different approaches
+- **Truthful Capability Advertisement**  
+  ROM ID bytes must represent the **lowest historical capability tier**
+  for which the firmware implements the complete and correct behavior
+  defined by this specification. Implementations may provide additional
+  features beyond that tier, but must not claim a tier whose full
+  behavior they do not implement.
 
-**Example:** The Home routine (\$FC58) clears the screen on all variants
-with the same entry point and register contract, but internally: - On
-IIe/IIc with 80-column support: clears both main and auxiliary display
-memory - On II/II+: clears only main display memory
+- **Support for Subset and Superset Firmware Images**  
+  Implementations are not required to match any historical Apple II ROM.
+  A firmware image may omit rarely used features, add new ones, or
+  combine capabilities in non‑historical ways, as long as it fully
+  implements the tier it advertises and accurately reports any
+  additional capabilities.
 
-This design principle enables clean, maintainable ROM implementations
-suitable for reproduction systems while preserving software
-compatibility with the historical Apple II software library.
+- **Contract Fidelity**  
+  All implemented routines must honor the documented register usage,
+  memory effects, and observable behavior. Partial or inconsistent
+  implementations of advertised features are not permitted.
+
+#### Implementation Requirements
+
+- **ID Bytes**  
+  Must identify the lowest historical capability tier for which the
+  firmware provides a complete implementation. For example, a ROM that
+  omits IIe‑specific firmware features must advertise II or II+, even if
+  running on IIe‑class hardware.
+
+- **Capability APIs**  
+  Implementations may expose additional capabilities beyond the
+  advertised tier. These capabilities must be discoverable through
+  hardware probing or through any firmware‑level APIs defined in this
+  specification. Future revisions may introduce additional capability
+  APIs for finer‑grained detection.
+
+- **API Contract Compliance**  
+  All implemented entry points must behave exactly as documented,
+  including register conventions, side effects, and memory interactions.
+
+#### Resulting Behavior
+
+This philosophy ensures that software relying on proper feature
+detection — using hardware probes where available and ROM‑advertised
+capability tiers where necessary — will operate correctly on any
+compliant firmware implementation, whether historical, minimal,
+extended, or custom.
 
 ## System Architecture Overview
 
@@ -160,19 +194,19 @@ The Apple II architecture is characterized by:
 
 **Memory:**
 
-- 48KB to 128KB RAM depending on model and configuration
+- 4KB to 128KB RAM depending on model and configuration
 - 8KB to 32KB ROM containing firmware and system software
 - Bank-switched memory expansion (language card, auxiliary RAM)
 
 **Display:**
 
 - Text modes:
-  - 40-column or
-  - 80-column (IIe/IIc with appropriate hardware)
+  - 40-column
+  - 80-column (IIc standard; IIe with 80-column card)
 - Graphics modes:
-  - Low-resolution (40×48),
+  - Low-resolution (40×48)
   - High-resolution (280×192)
-  - Double high-resolution (560×192) on IIe/IIc with 128K RAM
+  - Double high-resolution (560×192) on IIc and on IIe with 128K
 - Memory-mapped video with hardware support for page flipping
 
 **I/O:**
@@ -198,9 +232,8 @@ capabilities, memory configurations, and peripheral support. Firmware
 and software can detect which hardware variant is present using
 standardized identification bytes stored in ROM at fixed addresses.
 
-This section documents the official Apple hardware identification
-methods as specified in Apple II Miscellaneous Technical Notes \#7 and
-\#2.
+This section documents the official hardware identification methods as
+specified in Apple II Miscellaneous Technical Notes \#7 and \#2.
 
 **References:**
 
@@ -218,8 +251,9 @@ methods as specified in Apple II Miscellaneous Technical Notes \#7 and
   cassette interface
 - **Apple II+** (1979) - 6502 CPU @ 1 MHz, enhanced ROM, Applesoft
   BASIC, auto-start ROM
-- **Apple IIe** (1983) - 6502 or 65C02 CPU @ 1.023 MHz, 64K-128K RAM,
-  auxiliary memory support, lowercase, 80-column capability
+- **Apple IIe** (1983) - 6502 or 65C02 CPU @ 1.023 MHz, 64K RAM or 128K
+  RAM with auxiliary memory support (requires Extended 80-Column Card),
+  lowercase, 80-column text capability (requires 80-Column Card)
 - **Apple IIe Enhanced** (1985) - 65C02 CPU, enhanced ROM, improved
   monitor, additional routines
 - **Apple IIc** (1984) - 65C02 CPU @ 1.023 MHz, integrated design, 128K
@@ -247,7 +281,7 @@ instruction-level compatibility.
 
 #### Identification Byte Locations
 
-Apple provides standardized ROM identification bytes that software can
+The ROM provides standardized identification bytes that software can
 read to determine hardware type and ROM revision. All identification
 bytes reside in the main ROM bank and must be read with main ROM
 switched in.
@@ -363,8 +397,9 @@ constants:
 
 **ROM Organization:**
 
-- **Apple II/II+:** 8KB ROM (12KB with autostart, can be shadowed in
-  language card \$D000-\$FFFF)
+- **Apple II/II+:** Firmware mapped into \$D000-\$FFFF (12KB address
+  space; actual ROM population varies by firmware revision, and later
+  “autostart” firmware typically uses the full window)
 - **Apple IIe:** 16KB ROM (main and auxiliary/slot ROM areas)
 - **Apple IIc:** 16KB or 32KB ROM (banked via \$C028)
 
@@ -442,9 +477,9 @@ ROM).
 
 - **[IDRoutine (\$FE1F)](#idroutine-fe1f)** - System identification
   entry point
-- **[RAM Initialization and Memory
-  Detection](#ram-initialization-and-memory-detection)** - Memory
-  configuration details
+- **[System Boot and
+  Initialization](#system-boot-and-initialization)** - Memory
+  initialization and configuration
 - **[ROM Organization and Banking](#rom-organization-and-banking)** -
   ROM banking and structure
 - **[I/O and Soft Switches](#io-and-soft-switches)** - Soft switch
@@ -693,7 +728,8 @@ IIe can switch between slot ROMs and internal ROMs via SLOTCXROM
 
 System firmware ROM containing:
 
-- \$D000-\$F7FF: Applesoft BASIC interpreter (10KB)
+- \$D000-\$F7FF: BASIC interpreter (10KB; historically Integer BASIC or
+  Applesoft BASIC depending on system/firmware)
 - \$F800-\$FFFF: Monitor and system routines (2KB)
 
 Can be shadowed by language card RAM on II/II+/IIe systems.
@@ -736,12 +772,11 @@ Can be shadowed by language card RAM on II/II+/IIe systems.
 
 #### See Also
 
-- **[RAM Initialization and Memory
-  Detection](#ram-initialization-and-memory-detection)** - Boot-time
-  memory configuration
-- **[Auxiliary RAM and Memory Soft
-  Switches](#auxiliary-ram-and-memory-soft-switches)** - Extended memory
-  details
+- **[System Boot and
+  Initialization](#system-boot-and-initialization)** - Boot-time memory
+  initialization and configuration
+- **[I/O and Soft Switches](#io-and-soft-switches)** - Auxiliary RAM
+  mapping soft switches
 - **[ROM Organization and Banking](#rom-organization-and-banking)** -
   ROM structure and language card
 - **[Zero-Page Definitions](#zero-page-definitions)** - System variable
@@ -766,8 +801,8 @@ graphics through memory interleaving.
 **Text Modes:**
 
 - **40-Column Text**: Standard text mode, 40 characters × 24 rows
-- **80-Column Text**: Available on IIe/IIc with appropriate hardware, 80
-  characters × 24 rows
+- **80-Column Text**: Standard on IIc and available on IIe with
+  80-column card, 80 characters × 24 rows
 
 **Graphics Modes:**
 
@@ -1062,8 +1097,7 @@ switch reference.
 
 #### See Also
 
-- **[Auxiliary RAM and Memory Soft
-  Switches](#auxiliary-ram-and-memory-soft-switches)** - 80-column and
+- **[I/O and Soft Switches](#io-and-soft-switches)** - 80-column and
   double hi-res details
 - **[I/O and Soft Switches](#io-and-soft-switches)** - Display control
   switches
@@ -1189,14 +1223,6 @@ When ON, PAGE2 overrides RAMRD/RAMWRT for display memory only, enabling
 
 - **\$C010** (R/W): Clear keyboard strobe (clears bit 7 of KBD)
 
-**RDBNK2 - Bank 2 Indicator (IIe):**
-
-- **\$C011** (R7): Read language card bank status (1=bank 2, 0=bank 1)
-
-**RDLCRAM - Language Card RAM Read:**
-
-- **\$C012** (R7): Read LC RAM status (1=reading RAM, 0=reading ROM)
-
 **Usage:**
 
     LDA $C000    ; Read keyboard
@@ -1298,7 +1324,13 @@ On IIe/IIc, AN3 also controls double hi-res:
 #### Language Card Soft Switches
 
 The language card uses a two-read write-enable mechanism in the
-\$C080-\$C08F range:
+\$C080-\$C08F range.
+
+**Related status reads (IIe):**
+
+- **\$C011** (R7) **RDBNK2**: 1=language card bank 2 selected, 0=bank 1
+- **\$C012** (R7) **RDLCRAM**: 1=reading language-card RAM, 0=reading
+  ROM
 
 **Bank 2 Switches:**
 
@@ -1393,7 +1425,7 @@ cross-bank calling mechanisms.
     - Detect hardware capabilities and adapt firmware behavior
 
 **Note:** Soft switches are hardware features provided by the Apple II
-system. ROM firmware uses these switches but does not implement them.
+system. System firmware uses these switches but does not implement them.
 Hardware or emulator implementation is responsible for:
 
 - Responding to soft switch reads/writes
@@ -1420,9 +1452,8 @@ Hardware or emulator implementation is responsible for:
 - **[Display System](#display-system)** - Display modes and soft switch
   combinations
 - **[Memory System](#memory-system)** - Memory organization
-- **[Auxiliary RAM and Memory Soft
-  Switches](#auxiliary-ram-and-memory-soft-switches)** - Extended memory
-  details
+- **[Memory System](#memory-system)** - Auxiliary RAM organization and
+  usage
 - **[ROM Organization and Banking](#rom-organization-and-banking)** -
   Language card and ROM banking
 - **[Hardware Variants and
@@ -1444,12 +1475,21 @@ execution models for 8-bit Apple II systems.
 
 #### ROM Memory Map by Model
 
-**Apple II and II+ (8KB ROM):**
+**Apple II and II+ (\$D000-\$FFFF window; ROM content varies by firmware
+revision):**
 
-- **\$D000-\$FFFF**: 12KB address space
-  - \$D000-\$F7FF: Integer BASIC ROM (II) or Applesoft BASIC ROM (II+)
+- **\$D000-\$FFFF**: 12KB address space reserved for firmware and/or
+  bank-switched RAM
   - \$F800-\$FFFF: Monitor ROM (2KB)
-- ROM is read-only, occupies upper 12KB of 64KB address space
+  - \$D000-\$F7FF: BASIC interpreter and related routines
+    (implementation- and revision-dependent)
+
+**Note:** Although software sees a 12KB window at \$D000-\$FFFF, early
+Apple II firmware revisions may not populate the entire \$D000-\$F7FF
+range with ROM (some systems place Integer BASIC primarily in the upper
+portion of that range, and the lower portion may be unused or occupied
+by optional ROM).
+
 - Language card (when installed) can shadow this area with RAM
 
 **Apple IIe (16KB ROM):**
@@ -1458,7 +1498,7 @@ execution models for 8-bit Apple II systems.
   internal ROM)
 - **\$C800-\$CFFF**: Internal ROM (\$C800-\$CFFF, 2KB)
 - **\$D000-\$FFFF**: Main ROM bank (12KB)
-  - \$D000-\$F7FF: Applesoft BASIC
+  - \$D000-\$F7FF: BASIC interpreter (typically Applesoft BASIC on IIe)
   - \$F800-\$FFFF: Monitor and system routines
 - Additional internal ROM overlays available via soft switches
 
@@ -1636,7 +1676,7 @@ Interrupts can occur during any bank configuration:
     - Interrupt behavior during bank switching
 
 **Note:** ROM banking and language card features are provided by
-hardware. The ROM firmware uses these features but does not implement
+hardware. The system firmware uses these features but does not implement
 them. Hardware or emulator implementation is responsible for:
 
 - Responding to banking soft switch reads/writes
@@ -1656,26 +1696,26 @@ them. Hardware or emulator implementation is responsible for:
 3.  **Use Documented Entry Points:**
     - Use cross-bank jump tables when available
     - Don’t rely on undocumented banking behavior
-    - Test on multiple ROM versions
+    - Test on multiple firmware revisions
 
 #### ROM Banking State Bits
 
-During interrupt handling, the complete memory configuration state
-(including ROM banking) is encoded for preservation. See **[Memory State
-Encoding](#memory-state-encoding)** in the Interrupt Handling section
-for the complete 8-bit encoding table.
+During interrupt handling, firmware must preserve and restore the
+effective memory mapping, which can include language-card state and
+banked-ROM state. Many implementations do this by encoding a compact
+state byte; see **[Memory State Encoding](#memory-state-encoding)** in
+the Interrupt Handling section for an illustrative historical example.
 
-**ROM banking state bits:**
+**ROM-banking related items commonly captured in such a state value
+include:**
 
-- Bit D3: Language card RAM enabled
-- Bit D2: Language card bank 1 selected
-- Bit D1: Language card bank 2 selected
-- Bit D0: Alternate ROM bank selected (IIc)
+- Whether language-card RAM is selected for reading (vs ROM)
+- Which language-card bank is selected (if applicable)
+- Whether an alternate ROM bank is selected (banked ROM systems)
 
 #### See Also
 
-- **[Auxiliary RAM and Memory Soft
-  Switches](#auxiliary-ram-and-memory-soft-switches)** - RAM banking and
+- **[I/O and Soft Switches](#io-and-soft-switches)** - RAM banking and
   soft switches
 - **[Memory System](#memory-system)** - Complete memory architecture
 - **[Interrupt Handling](#interrupt-handling)** - Interrupt context
@@ -1691,7 +1731,7 @@ for the complete 8-bit encoding table.
 The Apple II boot process encompasses hardware reset, firmware
 initialization, memory configuration, and optional peripheral device
 boot loading. This section documents the complete boot sequence and
-initialization requirements for implementing compatible ROM firmware.
+initialization requirements for implementing compatible system firmware.
 
 ### Boot Sequence Overview
 
@@ -1706,9 +1746,9 @@ The complete boot process follows this sequence:
     initialize variables
 5.  **Warm Start Detection** - Check if valid warm start signature
     present (IIe+)
-6.  **Peripheral Slot Scan** - Check slots 1-7 for boot ROMs (II/II+/IIe
-    only)
-7.  **Peripheral Boot** - Execute first boot ROM found, if any
+6.  **Peripheral Slot Scan** - Check slots 1-7 for bootable peripheral
+    firmware (II/II+/IIe only)
+7.  **Peripheral Boot** - Execute first bootable device found, if any
 8.  **Default Entry** - Enter Monitor or BASIC if no boot device found
 
 ### Hardware Reset
@@ -1730,8 +1770,11 @@ The complete boot process follows this sequence:
 
 ### Firmware Reset Routine
 
-The firmware reset entry point (typically \$FA62 on IIe/IIc) performs
-essential initialization:
+The firmware reset entry point initializes the system and decides
+whether to perform a warm start or cold start. (The entry point address
+differs across hardware families and firmware revisions; see [Reset
+(\$FA62)](#reset-fa62) for the documented contract of the Reset routine
+in this specification.)
 
 **Required Initialization Steps:**
 
@@ -1768,28 +1811,83 @@ essential initialization:
     - Set SOFTEV (warm start entry)
     - Set IRQLOC (IRQ handler)
 9.  **Scan for Peripheral Boot:**
-    - Check slots for boot signature
-    - Jump to first boot ROM found
+    - Scan slots for a bootable storage controller using
+      ProDOS/SmartPort ID bytes (see [Boot ROM Identification
+      Protocols](#boot-rom-identification-protocols), Protocol 3)
+    - Jump to first boot entry found
     - Fall through to Monitor/BASIC if none
 
 ### Memory Initialization
 
 **Cold Start Memory Clearing:**
 
-The firmware clears screen memory and initializes system variables:
+On a cold start, firmware should initialize memory and hardware into a
+predictable state suitable for the Monitor and for any BASIC image that
+may be present (for example, a system pairing a historical BASIC image
+with a re-implemented system/monitor firmware image).
 
-1.  Clear display memory from \$BFXX down to \$0200
-2.  Fill with space characters (\$A0 = ASCII space with high bit set)
-3.  Avoid overwriting zero page (\$00-\$FF) and stack (\$0100-\$01FF)
-4.  Initialize soft switches to default state (IIe/IIc)
-5.  Set system variables to known values
+A common historical baseline is:
 
-**Implementation approach:**
+- Clear text screen memory and display a “blank” text page (typically by
+  filling text pages with the high-bit-set space character, `$A0`).
+- Initialize the Monitor’s core low-memory workspace and vectors so that
+  standard entry points (input, output, BRK/IRQ, warm start) behave
+  consistently.
 
-- Start from high memory, work down to low memory
-- Use indexed addressing for efficiency
-- Set 80-column switches if appropriate (IIc)
-- Clear auxiliary memory if present (IIe/IIc with 128K)
+Cold-start initialization must avoid overwriting:
+
+- Zero page (\$00-\$FF)
+- The active stack page (\$0100-\$01FF)
+
+**Recommendation (compatibility):**
+
+If maximum compatibility with legacy software is desired, clear at least
+the standard text-page memory region (\$0400-\$0BFF) to `$A0` and ensure
+cursor/window state is initialized to a full-screen text window with the
+cursor at the upper-left.
+
+**Implementation notes:**
+
+- The specific clearing algorithm is an implementation choice, but the
+  observable result should be a usable text display and a consistent
+  initial Monitor/BASIC environment.
+- For performance, historical implementations typically use indexed
+  addressing and page-oriented loops when clearing contiguous memory
+  ranges.
+- If the implementation supports auxiliary memory banking, it should
+  also ensure the default display and memory mapping state is
+  well-defined at the end of reset.
+
+#### Recommended default low-memory and soft-switch state (cold start)
+
+After cold-start initialization, a compatibility-focused firmware should
+establish at least the following defaults (exact values may vary by
+system family, but these are common expectations):
+
+- **Text output/window state:**
+  - `[WNDLFT](#wndlft) = 0`
+  - `[WNDWDTH](#wndwdth) = 40` (or 80 only if the implementation enables
+    and supports 80-column mode)
+  - `[WNDTOP](#wndtop) = 0`
+  - `[WNDBTM](#wndbtm) = 23`
+  - `[CH](#ch) = 0`, `[CV](#cv) = 0`
+  - `[INVFLG](#invflg)` set for normal text output
+- **Standard I/O hooks:**
+  - `[CSWL/CSWH](#cswl-cswh)` set to the standard screen output routine
+    (see [SetVid](#setvid-fe93))
+  - `[KSWL/KSWH](#kswl-kswh)` set to the standard keyboard input routine
+    (see [SetKbd](#setkbd-fe89))
+- **Vectors:**
+  - `[BRKV](#brkv)` set to the default BRK/Break handler
+  - `[IRQLOC](#irqloc)` set to the default IRQ handler (often an
+    immediate `RTI`)
+  - `[SOFTEV](#softev)` set to the default warm-start entry
+- **Soft switches (common baseline):**
+  - Text mode selected, page 1 selected, and mixed/graphics modes off
+    unless intentionally entered via a graphics init routine
+  - If auxiliary memory mapping exists, default to “main” mappings (main
+    ZP/stack, main read/write) unless the firmware explicitly boots into
+    an alternate mapping
 
 ### RAM Size Detection
 
@@ -1893,15 +1991,31 @@ boot ROM.
 - **Size:** 256 bytes (\$Cn00-\$CnFF per slot)
 - **Example:** Disk II controller in slot 6 = \$C600-\$C6FF
 
-**Slot Scan Algorithm:**
+**Slot Scan Algorithm (Autostart-style boot):**
 
-Firmware scans slots sequentially:
+For maximum compatibility, system firmware should use the **ProDOS block
+device / SmartPort ID bytes** (see **[Boot ROM Identification
+Protocols](#boot-rom-identification-protocols)**, Protocol 3) to decide
+whether a slot contains a bootable mass-storage controller.
+
+A concrete, widely-compatible check is:
+
+- Read **\$Cn01**, **\$Cn03**, **\$Cn05** and require: `$20`, `$00`,
+  `$03`.
+- Read **\$Cn07** to distinguish device type:
+  - `$00` indicates a **SmartPort**-style device.
+  - Nonzero values indicate a **traditional block device controller**;
+    Disk II-compatible controllers commonly use a nonzero value
+    (historically `$3C` on many Apple II-family systems).
+
+If the slot matches the expected signature for a bootable controller,
+transfer control to the slot boot entry at **\$Cn00**.
 
     FOR slot = 7 DOWN TO 1
-        Check $Cn00 for boot signature
-        IF valid signature THEN
+        IF ($Cn01 == $20) AND ($Cn03 == $00) AND ($Cn05 == $03) THEN
+            ; Optional: consult $Cn07 to distinguish SmartPort vs traditional controller.
             JSR $Cn00
-            (Boot ROM executes)
+            ; (Boot ROM executes)
         END IF
     NEXT slot
 
@@ -1992,8 +2106,8 @@ RESET button behavior depends on warm start signature:
     - Preserve programs on RESET
     - Set magic bytes after initialization
 5.  **Enable Peripheral Boot:**
-    - Scan slots for boot ROMs
-    - Execute first valid boot ROM
+    - Scan slots for bootable peripheral firmware
+    - Execute first valid boot entry
     - Provide IORTS for slot detection
 6.  **Establish Vectors:**
     - Set default interrupt handlers
@@ -2207,171 +2321,125 @@ Handler must:
 
 ### Memory State Encoding
 
-Firmware uses packed byte to save complete memory configuration:
+If the firmware supports bank-switched memory (auxiliary RAM, language
+card RAM, banked ROM, etc.), the interrupt entry/exit path must preserve
+the active memory mapping.
 
-| Bit | Meaning                                                |
-|-----|--------------------------------------------------------|
-| D7  | 1 if using auxiliary zero page/stack (ALTZP on)        |
-| D6  | 1 if 80STORE enabled and PAGE2 on                      |
-| D5  | 1 if reading from auxiliary RAM (RAMRD)                |
-| D4  | 1 if writing to auxiliary RAM (RAMWRT)                 |
-| D3  | 1 if language card RAM enabled for reading             |
-| D2  | Language card bank selection (implementation-specific) |
-| D1  | Language card bank selection (implementation-specific) |
-| D0  | 1 if alternate ROM bank selected (IIc)                 |
+A common historical technique is to snapshot the active mapping into a
+compact state byte (often pushed on the stack) so it can be restored
+before `RTI`. The exact encoding is usually an internal implementation
+detail (not an externally visible API contract), but it is useful to
+enumerate what state commonly needs to be preserved.
 
-**Purpose:**
+#### Example historical state-byte encoding (illustrative)
 
-Single-byte encoding minimizes stack usage and allows quick save/restore
-during interrupt handling.
+Some implementations encode memory configuration using an 8-bit value
+along these lines:
+
+| Bit | Meaning (example)                                           |
+|-----|-------------------------------------------------------------|
+| D7  | 1 if auxiliary zero page/stack is selected (ALTZP)          |
+| D6  | 1 if 80STORE is enabled and PAGE2 is selected               |
+| D5  | 1 if reads are mapped to auxiliary RAM (RAMRD)              |
+| D4  | 1 if writes are mapped to auxiliary RAM (RAMWRT)            |
+| D3  | 1 if language-card RAM is enabled for reading (vs ROM)      |
+| D2  | Language-card bank select (implementation-defined)          |
+| D1  | Language-card bank select (implementation-defined)          |
+| D0  | 1 if an alternate ROM bank is selected (banked ROM systems) |
+
+**Notes:**
+
+- Not all bits are meaningful on all models (e.g., an Apple II without
+  auxiliary RAM has no ALTZP/RAMRD/RAMWRT to preserve).
+- The *spec requirement* is to preserve and restore the effective
+  mapping; the specific bit layout is an implementation choice unless
+  exposed by a documented routine.
 
 ### Interrupt Entry with Auxiliary Memory
 
-**Complete Interrupt Entry Sequence:**
+**Complete Interrupt Entry Sequence (conceptual):**
 
-When interrupt occurs with auxiliary memory configuration active:
+If an interrupt can occur while auxiliary/banked memory mappings are
+active, the ROM interrupt dispatcher should:
 
-1.  **Push Current PC and Status** (hardware automatic)
+1.  Save the current CPU state (PC and P are pushed by hardware)
+2.  Save enough information to restore the current memory mapping later
+3.  Switch to a known-safe mapping for executing the handler (commonly
+    the default “main” mapping)
+4.  Run the handler (or dispatch through a RAM vector)
+5.  Restore the previous memory mapping and any affected stack state
+6.  Return via `RTI`
 
-2.  **Read Current Memory State:**
-
-    - Check all soft switch status registers
-    - Encode into single state byte
-    - Push state byte to stack
-
-3.  **Switch to Main Memory:**
-
-    - STA \$C008 ; main zero page/stack
-    - STA \$C002 ; read main RAM
-    - STA \$C004 ; write main RAM
-
-4.  **Save Stack Pointer:**
-
-    - If was using auxiliary stack, save SP to \$0100 (aux)
-    - Switch to main stack
-
-5.  **Execute Handler:**
-
-    - All interrupt handler code uses main memory
-    - Can safely modify main RAM
-    - Can access peripherals normally
-
-6.  **Restore Memory State:**
-
-    - Pop state byte from stack
-    - Decode bits and restore all soft switches
-    - Restore stack pointer if needed
-
-7.  **Return from Interrupt:**
-
-    - RTI instruction
-    - Hardware restores PC and status
-
-**Why Main Memory for Handlers:**
-
-Using main memory for interrupt handling:
-
-- Avoids confusion about which bank contains handler
-- Ensures stack operations access correct memory
-- Prevents recursive bank switching issues
-- Matches system initialization defaults
+This ensures interrupt handlers work correctly regardless of which bank
+was active at the moment the interrupt occurred.
 
 ### Stack Pointer Preservation
 
-**Problem:**
+If the firmware supports switching the active stack between banks (e.g.,
+auxiliary vs main), the interrupt dispatcher must ensure that:
 
-When ALTZP is on, zero page and stack are in auxiliary memory. Interrupt
-switches to main zero page/stack, but we need to restore auxiliary stack
-pointer on exit.
+- Stack pushes/pulls during interrupt handling use the intended stack
+  bank
+- The pre-interrupt stack pointer state is restored before returning
+  with `RTI`
 
-**Solution:**
+#### Illustrative historical example (ALTZP active)
 
-Firmware uses stack pointer save locations:
+On systems where **ALTZP** moves zero page and the stack page
+(\$0100-\$01FF) into auxiliary RAM, a common historical approach is:
 
-- **\$0100** (aux RAM): Main stack pointer when using aux stack
-- **\$0101** (aux RAM): Aux stack pointer when using main stack
+- On interrupt entry, snapshot the current **S** (stack pointer) and
+  record whether the interrupt occurred with ALTZP enabled.
+- If ALTZP was enabled, save **S** into a well-known location in the
+  *auxiliary* stack page (commonly `$0101` in auxiliary RAM) so it can
+  be restored later.
+- Switch to a known-safe mapping for interrupt handling (commonly: main
+  ZP/stack selected, main RAM read/write selected).
+- Load a safe main-memory stack pointer value (commonly `$FF`) before
+  running the handler or dispatching through a RAM vector.
+- On interrupt exit, restore the pre-interrupt memory mapping and, if
+  the interrupt occurred with ALTZP enabled, restore **S** from the
+  saved auxiliary location before returning with `RTI`.
 
-**Procedure:**
+**Why this matters:** if the handler runs while ALTZP remains enabled,
+the interrupt’s automatic pushes (and any nested pushes/pulls) will use
+the auxiliary stack page. That can corrupt whatever the interrupted code
+was using the auxiliary stack for, and it can break handlers that assume
+monitor/firmware workspace is in main memory.
 
-Before switching stacks in interrupt:
-
-    ; Currently using auxiliary stack
-    STA $C005    ; Write to auxiliary RAM
-    TSX          ; Get current stack pointer
-    STX $0101    ; Save in aux $0101
-    STA $C004    ; Write to main RAM
-    LDX #$FF     ; Restore main SP
-    TXS
-
-On interrupt exit:
-
-    STA $C005    ; Write to auxiliary RAM
-    LDX $0101    ; Load saved aux SP
-    TXS          ; Restore auxiliary stack
-    STA $C004    ; Write to main RAM
-    RTI
+The exact save locations and switching sequence are implementation
+choices, but the externally observable requirement is the same: an
+interrupt must not leave the machine in a different effective mapping or
+with a different stack pointer than it had at the moment of interrupt
+entry.
 
 ### Language Card State Preservation
 
-**Language Card Complexity:**
+If the firmware supports a language card (or similar) where enabling RAM
+write access requires a specific access sequence, the interrupt
+dispatcher must restore that state correctly before returning.
 
-Language card state requires two-read write-enable sequence. Simply
-saving soft switch status isn’t enough—must recreate exact access
-pattern.
+In particular, restoring “current mapping” may require more than just
+replaying a single soft-switch selection; it may require repeating the
+same enable sequence that established the state (for example,
+write-enable that requires two successive accesses).
 
-**State Elements:**
+See also:
 
-- Which bank selected (1 or 2)
-- RAM read enabled vs ROM
-- RAM write enabled vs write-protected
+- **[ROM Organization and Banking](#rom-organization-and-banking)** —
+  language card banking, write-enable sequence, and status reads
+- **[I/O and Soft Switches](#io-and-soft-switches)** — language card
+  soft switches and status locations
 
-**Restoration:**
+### ROM Banking State Preservation
 
-Interrupt handler must:
+If the firmware uses banked ROM, the interrupt entry path must ensure
+the interrupt dispatcher and any required helper routines are reachable
+when an interrupt occurs.
 
-1.  Save bank selection, read enable, write enable state
-2.  Restore by accessing appropriate soft switches
-3.  For write-enable, perform two reads if needed
-
-**Example State Save:**
-
-    ; Read LC state
-    LDA $C011    ; RDBANK2 status
-    ; bit 7 = 1 if bank 2
-    LDA $C012    ; RDLCRAM status  
-    ; bit 7 = 1 if reading RAM
-    ; (write enable requires tracking or assumption)
-
-**Example State Restore:**
-
-    ; Restore bank 2, read/write
-    LDA $C08B    ; First read
-    LDA $C08B    ; Second read - enables write
-
-### ROM Banking State Preservation (IIc)
-
-**IIc ROM Bank Toggle:**
-
-IIc systems with 32KB ROM use \$C028 to toggle banks. State preservation
-requires:
-
-1.  **Determine Current Bank:**
-    - Test known addresses that differ between banks
-    - Or maintain software bank tracking
-2.  **Switch to Handler Bank:**
-    - Ensure interrupt handler in current bank
-    - Or switch to known bank containing handler
-3.  **Restore Original Bank:**
-    - Toggle back if changed
-    - Maintain bank count (even=same, odd=opposite)
-
-**Handler Bank Location:**
-
-Interrupt handlers should be in:
-
-- Common ROM area (present in both banks), or
-- Both ROM banks at same address, or
-- Bank 1 (default boot bank)
+Implementations commonly address this by placing the dispatcher in a
+common region, mirroring it in all banks, or switching banks as part of
+interrupt entry/exit.
 
 ### Interrupt Handling Implementation Requirements
 
@@ -2425,8 +2493,7 @@ Interrupt handlers should be in:
   point
 - **[System Vectors](#system-boot-and-initialization)** - Interrupt
   vector initialization
-- **[Auxiliary RAM and Memory Soft
-  Switches](#auxiliary-ram-and-memory-soft-switches)** - Memory state
+- **[I/O and Soft Switches](#io-and-soft-switches)** - Memory state
   encoding
 - **[ROM Organization and Banking](#rom-organization-and-banking)** -
   Language card and ROM banking state
@@ -2435,19 +2502,26 @@ Interrupt handlers should be in:
 
 ### Overview
 
-The Apple II ROM includes a system monitor (accessed via `CALL -151` in
-Applesoft BASIC or by entering the Monitor from the cold start
-sequence). The Monitor provides a command-line interface for inspecting
-and manipulating memory, running code, and performing system
-diagnostics.
+Apple II-family system firmware includes a system monitor (commonly
+entered from BASIC with `CALL -151`, which jumps to [MonZ](#monz-ff69)
+at `$FF69`). The Monitor provides a command-line interface for
+inspecting and manipulating memory, running code, and invoking firmware
+I/O subroutines.
 
-The Monitor command system uses a pair of lookup tables at fixed ROM
-addresses to dispatch commands:
+Many standard firmware I/O entry points are used by system software (and
+may also be called directly by user programs) via their fixed entry
+addresses.
 
-- **ASCII Command Table (CHRTBL)** at `$FFCC` — Contains the ASCII
-  character codes for each supported command
-- **Routine Offset Table (SUBTBL)** at `$FFE3` — Contains the 16-bit
-  offsets to the routine that handles each command
+The Monitor command system uses a pair of lookup tables (commonly at
+fixed firmware addresses) to dispatch commands:
+
+- **ASCII Command Table (CHRTBL)** at `$FFCC` — Contains the command
+  character codes used by the Monitor command parser (typically ASCII
+  with bit 7 set, matching keyboard input convention).
+- **Dispatch Table (SUBTBL)** at `$FFE3` — Contains per-command dispatch
+  bytes used by the `TOSUB` dispatcher (an RTS-based dispatch
+  mechanism). The high byte is supplied by `TOSUB` (commonly the high
+  byte of the `GO` routine’s address).
 
 ### Monitor Entry Points
 
@@ -2472,66 +2546,186 @@ mode clearing, going directly to the command parser.
 
 ### Command Structure
 
-The Monitor command system works as follows:
+When the Monitor is running, it displays its prompt character (`*`) at
+the left edge of the screen, followed by a cursor. The user then enters
+a command line and presses Return.
 
-1.  **User Input:** The user types a command character at the Monitor
-    prompt (`*`)
-2.  **Command Lookup:** The [MonZ](#monz-ff69) routine reads the input
-    via [GetLnZ](#getlnz-fd67)
-3.  **Table Scan:** The command character is searched in the ASCII
-    Command Table at `$FFCC`
-4.  **Offset Retrieval:** If found, the matching index is used to look
-    up the routine offset in the Offset Table at `$FFE3`
-5.  **Routine Execution:** The offset is used to calculate the routine
-    address, and control is transferred to that routine
+The Monitor accepts the line using the standard line-input routine
+[GetLn](#getln-fd6a) (typically reached via [GetLnZ](#getlnz-fd67)). A
+command line can be up to 255 characters long and is terminated by a
+carriage return.
 
-### Lookup Tables (Fixed Addresses)
+A Monitor command line is made up of:
 
-#### ASCII Command Table (\$FFCC)
+- **Addresses** (hexadecimal)
+- **Data values** (hexadecimal)
+- **Command characters** (letters, punctuation, and control characters)
 
-This table contains the ASCII codes for each supported Monitor command.
-Typical commands include:
+#### Hexadecimal parsing rules
 
-- `G` — Go (execute code at specified address)
-- `L` — List (display hex dump of memory)
-- `M` — Modify memory
-- `R` — Run (resume execution)
-- `S` — Substitute (replace memory contents)
-- `X` — Examine registers
-- `A` — Assemble (6502 assembly input)
-- Others as implemented by the ROM variant
+When parsing addresses and byte values from the input line:
 
-**Format:** Each entry is a single byte containing the ASCII code of the
-command character.
+- Address expressions with fewer than four hex digits are treated as if
+  they had leading zeros.
+- Address expressions with more than four hex digits use only the last
+  four hex digits.
+- When a byte value is expected, fewer than two digits are treated as if
+  they had a leading zero; more than two digits use only the last two
+  hex digits.
 
-#### Routine Offset Table (\$FFE3)
+These behaviors are provided by the Monitor’s hex-scanning routines
+(notably [GetNum](#getnum-ffa7) working with [NxtChr](#nxtchr-ffad) /
+[Dig](#dig-ff8a)), which build values in a 16-bit accumulator.
 
-This table contains 16-bit offsets corresponding to the routine that
-handles each command. The index in this table matches the index found in
-the ASCII Command Table.
+#### Command characters and implicit operations
 
-**Format:** Each entry is a 16-bit offset (low byte, then high byte).
+Note: While entering a command line, control characters are interpreted
+by the Monitor’s input/editor logic and are not normally echoed as
+printable glyphs.
 
-**Fixed Location:** This table **must** remain at `$FFE3` for
-compatibility with external diagnostic tools and software that may
-reference this address directly.
+A Monitor input line generally includes a command character (often the
+first character of the command name). Some operations are implied by
+syntax; for example, a line beginning with a hexadecimal address
+expression can request an examine/open operation without an explicit
+command letter.
 
-### Monitor Commands (Examples)
+#### Common command-line patterns
 
-The following are typical commands found in Apple II ROMs (exact set
-varies by variant):
+The Monitor command language is expression- and delimiter-driven, and
+many commands can be written without spaces. Common patterns include:
 
-| Command | ASCII | Function                                            |
-|---------|-------|-----------------------------------------------------|
-| G       | \$47  | **Go** — Execute code at specified address          |
-| L       | \$4C  | **List** — Display hex dump of memory range         |
-| M       | \$4D  | **Modify** — Change memory contents                 |
-| R       | \$52  | **Run** — Resume execution from [PCL/PCH](#pcl-pch) |
-| S       | \$53  | **Substitute** — Replace memory values              |
-| X       | \$58  | **Examine** — Display saved CPU registers           |
-| A       | \$41  | **Assemble** — Enter 6502 assembly instructions     |
-| T       | \$54  | **Trace** — Execute single instruction with display |
-| .       | \$2E  | **Full-stop** — Return to prompt (stop tracing)     |
+- **Implicit examine/open:** A line that begins with hexadecimal digits
+  is treated as an address expression and sets the “current address”
+  (commonly tracked via A1L/A1H). If the line ends at that point (CR),
+  the Monitor examines the contents at that address and leaves the
+  address “open” for subsequent examine/store operations.
+- **Examine a range:** `start.end` (a period followed by an ending
+  address) examines a range of memory locations (e.g., `300.30F`).
+- **Store/edit memory:** `addr: ...` enters store mode at `addr` and
+  consumes subsequent byte/word values from the same line.
+- **Concatenation:** Delimiters like `.` and `:` allow multiple
+  operations to be written in a single line without spaces when the
+  syntax is unambiguous.
+
+The exact command set (which command characters are recognized) is
+system- and firmware-revision dependent.
+
+### Command Dispatch Tables (CHRTBL/SUBTBL)
+
+The Monitor’s command dispatcher is table-driven:
+
+- [CHRTBL](#chrtbl-ffcc) at `$FFCC` holds the command characters.
+- [SUBTBL](#subtbl-ffe3) at `$FFE3` holds the corresponding dispatch
+  entries.
+- The dispatcher is typically implemented by [TOSUB](#tosub-ffbe).
+
+The detailed data formats and dispatcher mechanics are documented in the
+linked entries above; this section focuses on the user-visible Monitor
+behavior and how the pieces fit together.
+
+### Monitor parse loop overview
+
+The Monitor reads a line into [INBUF](#inbuf) and then scans it
+left-to-right, repeatedly decoding a hexadecimal value and/or a command
+token.
+
+- The current scan index is tracked in [YSAV](#ysav).
+- Command tokens are dispatched through
+  [CHRTBL](#chrtbl-ffcc)/[SUBTBL](#subtbl-ffe3) via
+  [TOSUB](#tosub-ffbe).
+
+Several small internal routines work together to keep this loop compact:
+
+- [CRMon](#crmon-fef6) handles carriage return by transferring into the
+  shared blank/end-of-item path and then returning to the Monitor loop.
+- [BL1](#bl1-fe00) is a shared helper used by this path; it adjusts the
+  scan state (via [YSAV](#ysav)) and then either:
+  - transfers control into the main item-processing logic, or
+  - falls through into [BLANK](#blank-fe04).
+- [BLANK](#blank-fe04) is the continuation of the shared blank/skip
+  logic used while scanning a line.
+
+As part of main item processing, the current mode byte ([MODE](#mode))
+selects the high-level behavior:
+
+- If [MODE](#mode) indicates normal examine behavior, the Monitor prints
+  memory contents.
+- If [MODE](#mode) was set by `:` (via [SetMode](#setmode-fe18)), the
+  Monitor stores parsed values to memory.
+- If [MODE](#mode) was set by `+` or `-` (via [SetMode](#setmode-fe18)),
+  the Monitor performs the documented “expression” behavior: it combines
+  the next parsed value with the current address value and prints the
+  result.
+
+### Monitor commands (command-table entries)
+
+The command set varies across systems and firmware revisions. The matrix
+below is a compact view of command characters that commonly appear in
+Monitor command tables.
+
+Notes:
+
+- Many handlers (e.g., [BASCONT](#bascont-feb3), [USR](#usr-feca),
+  [REGZ](#regz-febf), [SetMode](#setmode-fe18), [CRMon](#crmon-fef6))
+  are Monitor-internal routines, but they are required for a usable
+  Monitor.
+- The table below links command characters to the handler routines
+  typically selected by `CHRTBL`/`SUBTBL` dispatch (see
+  [TOSUB](#tosub-ffbe)).
+- If a mini-assembler is present, it is entered via the Monitor (for
+  example, via a `+!` command-table entry handled by
+  [Mini](#mini-fe6c)).
+
+| Command (as typed) | Typical meaning | Common across many systems | Early cassette-oriented systems | Later firmware revisions (examples) |
+|----|----|:--:|:--:|:--:|
+| `Ctrl+C` | [BASCONT](#bascont-feb3) — BASIC warm start/continue | ✓ | ✓ | ✓ |
+| `Ctrl+Y` | [USR](#usr-feca) — user vector | ✓ | ✓ | ✓ |
+| `Ctrl+E` | [REGZ](#regz-febf) — display/edit registers | ✓ | ✓ | ✓ |
+| `Ctrl+K` | [INPRT](#inprt-fe8d) / [InPort](#inport-fe8b) — `IN#` (input slot) | ✓ | ✓ | ✓ |
+| `Ctrl+P` | [OUTPRT](#outprt-fe97) / [OutPort](#outport-fe95) — `PR#` (output slot) | ✓ | ✓ | ✓ |
+| `Ctrl+B` | `XBASIC` — BASIC cold start (IIc/IIe family handler; not currently documented) | ✓ | ✓ | ✓ |
+| `G` | [Go](#go-feb6) — execute code | ✓ | ✓ | ✓ |
+| `L` | [List](#list-fe5e) — disassemble | ✓ | ✓ | ✓ |
+| `M` | [Move](#move-fe2c) — move/copy memory | ✓ | ✓ | ✓ |
+| `V` | [Verify](#verify-fe36) — compare memory | ✓ | ✓ | ✓ |
+| `I` | [SetInv](#setinv-fe80) — inverse text | ✓ | ✓ | ✓ |
+| `N` | [SetNorm](#setnorm-fe84) — normal text | ✓ | ✓ | ✓ |
+| `<` | [LT](#lt-fe20) — delimiter used by [Move](#move-fe2c)/[Verify](#verify-fe36) | ✓ | ✓ | ✓ |
+| `:` | [SetMode](#setmode-fe18) — enter store/fill mode | ✓ | ✓ | ✓ |
+| `.` | [SetMode](#setmode-fe18) — address delimiter mode | ✓ | ✓ | ✓ |
+| `+` / `-` | [SetMode](#setmode-fe18) — expression add/subtract mode | ✓ | ✓ | ✓ |
+| `CR` | [CRMon](#crmon-fef6) — end of line / return to Monitor | ✓ | ✓ | ✓ |
+| `BLANK` | [BLANK](#blank-fe04) — blank/skip in parser | ✓ | ✓ | ✓ |
+| `W` | Cassette write (variant) | — | ✓ | — |
+| `R` | Cassette read (variant) | — | ✓ | — |
+| `S` | Step / single-step control (variant) | — | ✓ | — |
+| `T` | Trace control (variant) | — | ✓ | — |
+| `+S` | [StepZ](#stepz-fe71) — single-step (IIc command-table entry; not listed in the IIc reference manual) | — | — | ✓ |
+| `+T` | [Trace](#trace-fe6f) — trace (IIc command-table entry; not listed in the IIc reference manual) | — | — | ✓ |
+| `+!` | [Mini](#mini-fe6c) — mini-assembler (where implemented) | — | — | ✓ |
+
+In all cases, the authoritative definition for a particular system is
+the `CHRTBL`/`SUBTBL` contents it provides.
+
+### Standard register display format
+
+The Monitor’s register-display command prints the saved 6502 register
+state in a single, conventional line. The format is:
+
+- A leading carriage return (new line).
+- Five fields, in this order: `A`, `X`, `Y`, `P`, `S`.
+- Each field is printed as a letter, an equals sign, and a two-digit
+  hexadecimal byte value.
+- Fields are separated by spaces.
+
+Conceptually, the line has the form:
+
+`A=HH X=HH Y=HH P=HH S=HH`
+
+The bytes displayed are the Monitor’s saved copies of these registers
+(see [Save](#save-ff4a) / [Restore](#restore-ff3f)), which are commonly
+updated when entering the Monitor via [Break](#break-fa4c) and may also
+be edited via the register command.
 
 ### Escape Sequences and Control Characters
 
@@ -2564,58 +2758,44 @@ character.
 *Note: The commands ␛⃣ 4⃣, ␛⃣ 8⃣, and ␛⃣ ⌃⃣ - Q⃣ only function when enhanced
 video firmware is active.*
 
-### Implementation Requirements for Clean-Room ROM
+### Invoking and exiting the Monitor
 
-To implement a Monitor-compatible ROM:
+- **Enter:** Typically from BASIC with `CALL -151` (Monitor entry at
+  `$FF69`).
+- **Exit to BASIC / resident language:** Systems commonly provide
+  multiple ways to return to the previously-running language environment
+  (for example, a warm-start key sequence, an escape-return sequence, or
+  executing the jump instruction at `$0300` (e.g., `300G`) which
+  commonly transfers control to the resident language environment).
+- **Ctrl-Reset behavior (soft entry vector):** On systems that support
+  the RAM-based soft entry vector [SOFTEV](#softev) (`$03F2-$03F3`) and
+  the validity-check byte [PWREDUP](#pwredup) (`$03F4`), you can route
+  Ctrl-Reset back into the Monitor by writing `$69` to `$03F2`, `$FF` to
+  `$03F3`, and the corresponding validity-check value to `$03F4`. On
+  systems using the standard validity rule, `$03F4` must equal (high
+  byte XOR `$A5`), which yields `$5A` for `$FF69`.
 
-1.  **Fixed Table Locations:** The ASCII Command Table MUST be at
-    `$FFCC` and the Routine Offset Table MUST be at `$FFE3`. This is
-    essential for external diagnostic tools that may have these
-    addresses hard-coded.
+### Implementation Requirements (clean-room)
 
-2.  **Entry Point Availability:** The routines [Mon](#mon-ff65),
-    [MonZ](#monz-ff69), and [MonZ4](#monz4-ff70) must be available at
-    their documented addresses.
+A firmware implementation that claims Monitor compatibility should
+provide:
 
-3.  **Command Dispatch Mechanism:** A command dispatcher (typically
-    similar to [TOSUB](#tosub-ffbe)) must use the pair of tables to
-    route command characters to their handler routines.
-
-4.  **Register Preservation:** The Monitor should preserve CPU registers
-    and provide mechanisms to inspect and modify them via the
-    appropriate commands (typically the `X` command for examine).
-
-5.  **Memory Interaction:** The Monitor must provide access to all
-    addressable memory via commands like `L` (list) and `M` (modify) or
-    `S` (substitute).
-
-### Related Routines
-
-- [TOSUB](#tosub-ffbe) — Generic subroutine dispatcher using table
-  lookup
-- [GetLnZ](#getlnz-fd67) — Reads a line from user input (used by
-  Monitor)
-- [MonZ4](#monz4-ff70) — Alternative Monitor entry point
-- [INPRT](#inprt-fe8d), [OUTPRT](#outprt-fe97) — I/O port configuration
-  for Monitor I/O
-
-### Monitor Implementation Notes
-
-- The Monitor is a critical system component and its command structure
-  is relied upon by external diagnostic tools.
-- The fixed table locations at `$FFCC` and `$FFE3` are essential for ROM
-  compatibility.
-- Different Apple II variants (II, II+, IIe, IIc) may have different
-  sets of commands implemented, but the table structure remains
-  consistent.
+- **Entry points:** [Mon](#mon-ff65), [MonZ](#monz-ff69), and
+  [MonZ4](#monz4-ff70) at their documented addresses.
+- **Table-driven dispatch:** a working `CHRTBL`/`SUBTBL` pair and a
+  dispatcher (typically [TOSUB](#tosub-ffbe)). For maximum compatibility
+  with historical tooling, place the tables at `$FFCC` and `$FFE3`.
+- **Usable interactive environment:** command input (typically via
+  [GetLnZ](#getlnz-fd67)), character output through the standard output
+  hook, and the ability to inspect/modify memory and CPU state (the
+  exact command set is system- and revision-dependent).
 
 ### See also
 
-- [Mon](#mon-ff65) — Monitor initialization
-- [MonZ](#monz-ff69) — Monitor entry point
-- [SUBTBL](#subtbl-ffe3) — Routine offset table documentation
-- [CHRTBL](#chrtbl-ffcc) — ASCII command table documentation
-- [TOSUB](#tosub-ffbe) — Command dispatcher
+- [CHRTBL](#chrtbl-ffcc) — Monitor command-character table
+- [SUBTBL](#subtbl-ffe3) — Monitor dispatch table
+- [TOSUB](#tosub-ffbe) — RTS-based dispatcher used by the Monitor
+- [GetLnZ](#getlnz-fd67) — Line input with escape-sequence support
 - [INBUF](#inbuf) — Input buffer
 
 ## Summary of Firmware Entry Points
@@ -2626,10 +2806,13 @@ To implement a Monitor-compatible ROM:
 | [Advance](#advance-fbf4) | \$FBF4 | Advances the text cursor’s horizontal position. |
 | [AppleII](#appleii-fb60) | \$FB60 | Clears screen and displays machine ID. |
 | [BasCalc](#bascalc-fbc1) | \$FBC1 | Calculates 16-bit base address for text display line. |
+| [BASCONT](#bascont-feb3) | \$FEB3 | Monitor command handler: transfer control to BASIC warm start (Internal). |
 | [Bell](#bell-ff3a) | \$FF3A | Sends a bell character to standard output. |
 | [Bell1](#bell1-fbdd) | \$FBDD | Produces a brief 1 kHz tone through the system speaker with delay. |
 | [Bell1_2](#bell1_2-fbe2) | \$FBE2 | Produces a brief 1 kHz tone through the system speaker without delay. |
 | [Bell2](#bell2-fbe4) | \$FBE4 | Generates a square-wave tone by toggling the system speaker for a duration. |
+| [BL1](#bl1-fe00) | \$FE00 | Monitor helper: shared blank/end-of-item path used by carriage return handling (Internal). |
+| [BLANK](#blank-fe04) | \$FE04 | Monitor helper: blank/skip in parser (Internal). |
 | [Break](#break-fa4c) | \$FA4C | Handles processor hardware break event, saves registers, and transfers control to user hook. |
 | [BS](#bs-fc10) | \$FC10 | Performs a backspace operation, decrements CH, and moves cursor up if at left edge. |
 | [ClrCH](#clrch-fee9) | \$FEE9 | Clear horizontal cursor positions (Internal helper). |
@@ -2640,16 +2823,17 @@ To implement a Monitor-compatible ROM:
 | [ClrTop](#clrtop-f836) | \$F836 | Clears the upper 40 lines of the Lo-Res graphics display to black. |
 | [COut](#cout-fded) | \$FDED | Primary entry point for standard character output, indirect calls to active output routine. |
 | [COut1](#cout1-fdf0) | \$FDF0 | Displays ASCII character at current cursor, advances cursor, handles control characters, applies inverse flag. |
-| [COutZ](#coutz-fdf6) | \$FDF6 | Alternative entry point to COutl; identical functionality but does not apply inverse flag at start. |
+| [COutZ](#coutz-fdf6) | \$FDF6 | Alternative entry point to COut1; identical except it does not apply inverse mode at entry. |
 | [CR](#cr-fc62) | \$FC62 | Executes a carriage return, moving cursor to left edge and then calling LF. |
+| [CRMon](#crmon-fef6) | \$FEF6 | Monitor helper: treat carriage return as end-of-line and return to Monitor loop (Internal). |
 | [CROut](#crout-fd8e) | \$FD8E | Initiates a carriage return by sending a CR character to standard output. |
-| [CROut1](#crout1-fd8b) | \$FD8B | Clear to end of line and send carriage return to standard output,Y,-,Y,FALSE,Screen Output,,clear_to_eol |
+| [CROut1](#crout1-fd8b) | \$FD8B | Clears to end of line, then outputs a carriage return via the current standard output. |
 | [Dig](#dig-ff8a) | \$FF8A | Converts ASCII hexadecimal digit to 4-bit numerical value. |
 | [FD10](#fd10-fd10) | \$FD10 | Indirect jump for standard input, transfers control to routine in KSWL/KSWH. |
 | [GBasCalc](#gbascalc-f847) | \$F847 | Calculates 16-bit base address for a specified Lo-Res graphics display row. |
 | [GetCur2](#getcur2-ccad) | \$CCAD | Update zero-page horizontal cursor positions (Internal helper). |
 | [GetLn](#getln-fd6a) | \$FD6A | Reads a complete line of input from standard input, with editing features. |
-| [GetLn0](#getln0-fd6c) | \$FD6C | Display prompt in A register and read a line of text,Y,-,Y,FALSE,Standard Input,Print A + GetLn1, |
+| [GetLn0](#getln0-fd6c) | \$FD6C | Outputs the prompt character in A, then reads a line of input (via GetLn1). |
 | [GetLn1](#getln1-fd6f) | \$FD6F | Alternate entry point to GetLn, reads line without displaying a prompt. |
 | [GetLnZ](#getlnz-fd67) | \$FD67 | Sends a carriage return, then transfers control to GetLn. |
 | [GetNum](#getnum-ffa7) | \$FFA7 | Scans Monitor’s input buffer for hex digits, converts to numerical values. |
@@ -2671,6 +2855,8 @@ To implement a Monitor-compatible ROM:
 | [KeyIn0](#keyin0-fd18) | \$FD18 | Alternate entry point for standard keyboard input, jumps to routine in KSWL/KSWH. |
 | [LF](#lf-fc66) | \$FC66 | Executes a line feed, increments CV, and scrolls window up if needed. |
 | [List](#list-fe5e) | \$FE5E | Disassembles and displays 20 6502 instructions to standard output. |
+| [LT](#lt-fe20) | \$FE20 | Monitor command handler: list 6502 instructions (Internal). |
+| [Mini](#mini-fe6c) | \$FE6C | Enter the built-in mini-assembler (where implemented). |
 | [Mon](#mon-ff65) | \$FF65 | Prepares processor to enter System Monitor, clears decimal flag, activates speaker. |
 | [MonZ](#monz-ff69) | \$FF69 | Primary entry point for System Monitor, displays prompt, reads input, clears mode flag. |
 | [MonZ4](#monz4-ff70) | \$FF70 | Alternative entry point to System Monitor, bypasses initial prompt and mode clearing. |
@@ -2703,6 +2889,7 @@ To implement a Monitor-compatible ROM:
 | [RdKey](#rdkey-fd0c) | \$FD0C | Loads A with character at current cursor, passes control to FD10. |
 | [Read](#read-fefd) | \$FEFD | Obsolete entry point, simply returns. |
 | [RegDsp](#regdsp-fad7) | \$FAD7 | Displays memory state and saved A, X, Y, P, S register contents. |
+| [RegZ](#regz-febf) | \$FEBF | Monitor command handler: display registers (Internal). |
 | [Reset](#reset-fa62) | \$FA62 | Performs warm start initialization, checks for cold start, transfers control. |
 | [Restore](#restore-ff3f) | \$FF3F | Sets A, X, Y, P registers to stored values. |
 | [Save](#save-ff4a) | \$FF4A | Stores current A, X, Y, P, S registers, clears decimal mode flag. |
@@ -2712,14 +2899,18 @@ To implement a Monitor-compatible ROM:
 | [SetGr](#setgr-fb40) | \$FB40 | Sets display to mixed graphics, clears graphics screen, sets text window top. |
 | [SetInv](#setinv-fe80) | \$FE80 | Sets INVFLG to \$3F for inverse text output. |
 | [SetKbd](#setkbd-fe89) | \$FE89 | Sets input links to point to keyboard input routine KeyIn. |
-| [SetNorm](#setnorm-fe84) | \$FE84 | Set inverse flag to display normal characters,Y,-,Y,FALSE,Text window,, |
+| [SetMode](#setmode-fe18) | \$FE18 | Monitor helper: update Monitor [MODE](#mode) from parsed input (Internal). |
+| [SetNorm](#setnorm-fe84) | \$FE84 | Sets normal text output mode (clears inverse mode). |
 | [SetPwrC](#setpwrc-fb6f) | \$FB6F | Calculates Validity-Check byte for reset vector and stores it. |
 | [SetTxt](#settxt-fb39) | \$FB39 | Sets display to full-screen text window, updates BASL/BASH. |
 | [SetVid](#setvid-fe93) | \$FE93 | Sets output links to point to screen display routine COut1. |
 | [SetWnd](#setwnd-fb4b) | \$FB4B | Sets text window to full screen width, with top at specified line. |
+| [StepZ](#stepz-fe71) | \$FE71 | Monitor command handler: step control (Internal; hardware/firmware dependent). |
 | [StorAdv](#storadv-fbf0) | \$FBF0 | Places printable character on text screen, advances cursor, handles carriage return. |
 | [TabV](#tabv-fb5b) | \$FB5B | Performs a vertical tab to the line specified in A, updates CV and BASL/BASH. |
+| [Trace](#trace-fe6f) | \$FE6F | Monitor command handler: trace control (Internal; hardware/firmware dependent). |
 | [Up](#up-fc1a) | \$FC1A | Decrements CV value, moving cursor up one line, unless at top of window. |
+| [USR](#usr-feca) | \$FECA | Monitor command handler: jump through user vector in RAM (Internal). |
 | [Verify](#verify-fe36) | \$FE36 | Compares contents of two memory ranges, reports mismatches. |
 | [Version](#version-fbb3) | \$FBB3 | ROM identification byte, not a callable routine (value is \$06). |
 | [VidOut](#vidout-fbfd) | \$FBFD | Sends printable characters to StorAdv, handles control characters. |
@@ -2729,6 +2920,7 @@ To implement a Monitor-compatible ROM:
 | [VTabZ](#vtabz-fc24) | \$FC24 | Vertical tab to line specified in A register (Internal helper). |
 | [Wait](#wait-fca8) | \$FCA8 | Introduces a time delay determined by the value in A register. |
 | [Write](#write-fecd) | \$FECD | Obsolete entry point, simply returns. |
+| [XBASIC](#xbasic-feb0) | \$FEB0 | Monitor command handler: enter Applesoft BASIC through a ROM entry point (Internal). |
 | [ZIDByte](#zidbyte-fbc0) | \$FBC0 | ROM identification byte, not a callable routine (\$00 for Apple IIc). |
 | [ZIDByte2](#zidbyte2-fbbf) | \$FBBF | ROM identification byte, not a callable routine (depends on Apple IIc version). |
 | [ZMode](#zmode-ffc7) | \$FFC7 | Stores \$00 in Monitor’s Monitor Mode Byte to clear Monitor mode. |
@@ -2739,7 +2931,7 @@ To implement a Monitor-compatible ROM:
 
 **Description:**
 
-This is an **internal helper routine** primarily used by other ROM
+This is an **internal helper routine** primarily used by other firmware
 routines (e.g., [Go](#go-feb6)) to conditionally copy a 16-bit address
 from the zero-page locations [A1L/A1H](#a1l-a1h) to the program counter
 ([PCL/PCH](#pcl-pch)). Its behavior is dependent on the initial value of
@@ -2840,9 +3032,10 @@ Otherwise, the updated horizontal position is saved back to [CH](#ch).
 This routine clears the text display and shows the machine’s “Apple II”
 family identification string (e.g., “Apple //e”, “Apple IIGS”) on the
 first line. It operates only in text modes and will not function in
-graphics or mixed modes. Note that in some earlier Apple II ROMs, the
-routine at this address (`$FB60`) was a multiplication routine (`MULPM`)
-and not the `AppleII` display routine.
+graphics or mixed modes. Note that on earlier Apple II-family firmware,
+the code at this address (`$FB60`) served a different purpose (a
+multiplication routine often labeled `MULPM`) rather than the
+identification-string routine.
 
 **Input:**
 
@@ -2872,6 +3065,138 @@ and not the `AppleII` display routine.
 - [Home](#home-fc58)
 - [SetTxt](#settxt-fb39)
 - [Mon (\$FF65)](#mon-ff65)
+
+### BASCONT (\$FEB3)
+
+**Description:**
+
+Monitor command handler that transfers control to the system’s BASIC
+warm-start entry (“continue” / warm start behavior).
+
+**Input:**
+
+- **Registers:** A/X/Y undefined (not used as inputs).
+- **Memory:** None.
+
+**Output:**
+
+- Does not return.
+
+**Side Effects:**
+
+- Transfers control into BASIC warm-start logic.
+
+**Notes:**
+
+- This is typically reached via the Monitor’s command dispatcher tables
+  ([CHRTBL](#chrtbl-ffcc)/[SUBTBL](#subtbl-ffe3)).
+
+**See also:**
+
+- [MonZ](#monz-ff69)
+- [TOSUB](#tosub-ffbe)
+- [SUBTBL](#subtbl-ffe3)
+
+### BL1 (\$FE00)
+
+**Description:**
+
+Monitor-internal helper used as a shared entry into the command-line
+parser’s “blank / end-of-item” handling.
+
+This entry point is typically reached from [CRMon](#crmon-fef6)
+(carriage return handling), and it falls through into
+[BLANK](#blank-fe04) as the normal continuation. The purpose of this
+factoring is to share a small amount of setup logic before using the
+same parser state machine used for blanks.
+
+**Input:**
+
+- **Registers:** Monitor parser state (not intended as a general-purpose
+  API).
+- **Memory:**
+  - [YSAV](#ysav) (Monitor scan index; decremented)
+  - [MODE](#mode) is consulted by subsequent parser logic.
+
+**Output:**
+
+- Does not provide a stable register contract (Monitor-internal).
+- Control continues into the parser’s shared blank/dispatch logic (see
+  **Side Effects**).
+
+**Side Effects:**
+
+- Decrements [YSAV](#ysav).
+- If the updated scan state indicates the current command item is
+  complete, control transfers into the Monitor’s main item-processing
+  logic. As part of that logic, the Monitor may:
+  - perform memory examine output, or
+  - perform the `+` / `-` “expression” behavior (combine the next parsed
+    value with the current address value and print the result),
+    depending on [MODE](#mode).
+- Otherwise, it falls through into [BLANK](#blank-fe04).
+
+**Notes:**
+
+- This entry point exists in multiple Monitor implementations and is a
+  key part of how `CR` and blank handling share the same small
+  parse/dispatch path.
+- Although ROM disassemblies often label the follow-on decision point as
+  `XAMPM`, the externally observable contract is simply the Monitor’s
+  documented behavior for examine/store/add/subtract modes; the specific
+  internal label is not a required part of a compatible implementation.
+
+**See also:**
+
+- [CRMon](#crmon-fef6)
+- [BLANK](#blank-fe04)
+- [SetMode](#setmode-fe18) (sets [MODE](#mode) for `:`, `.`, `+`, `-`
+  tokens)
+- [MonZ](#monz-ff69)
+- [MODE](#mode)
+- [YSAV](#ysav)
+
+### BLANK (\$FE04)
+
+**Description:**
+
+Monitor parser helper used to treat a blank (space) on an input line as
+a separator and to continue parsing the current line.
+
+This routine is typically reached via a shared helper at \$FE00
+([BL1](#bl1-fe00)): [CRMon](#crmon-fef6) calls `BL1`, and `BL1` falls
+through into `BLANK` after adjusting the Monitor scan index.
+
+**Input:**
+
+- **Registers:**
+  - A = current parsed character / mode token (Monitor internal)
+  - X = Monitor parser state (used to distinguish “blank” vs other
+    transitions)
+  - Y = Monitor input index (internal)
+- **Memory:**
+  - [MODE](#mode) may be inspected/updated by subsequent parse logic.
+
+**Output:**
+
+- Returns to the Monitor parser/command loop (not intended as a stable
+  application API).
+- Registers: Undefined.
+
+**Side Effects:**
+
+- Affects Monitor parse flow and mode handling.
+
+**Notes:**
+
+- This is a Monitor-internal routine that participates in the command
+  parser state machine; programs should not call it directly.
+
+**See also:**
+
+- [CRMon](#crmon-fef6)
+- [MonZ](#monz-ff69)
+- [MODE](#mode)
 
 ### BS (\$FC10)
 
@@ -3227,6 +3552,36 @@ on `RDTEXT` soft switch.
 - `CLR80COL` (soft switch)
 - `CLR80VID` (soft switch)
 
+### CHRTBL (\$FFCC)
+
+**Description:**
+
+This is the Monitor’s command-character table. The Monitor command
+parser scans this table to find the index of a typed command character,
+then uses the same index to select the corresponding dispatch entry from
+[SUBTBL](#subtbl-ffe3).
+
+**Format:**
+
+- One byte per command.
+- In common implementations, entries use “keyboard style” character
+  codes (ASCII with bit 7 set) so they can be compared directly against
+  characters returned by the keyboard input routine.
+
+**Compatibility note:**
+
+Monitor implementations differ across hardware families and firmware
+revisions. Some IIc-family implementations effectively start the command
+table at `$FFCD` due to an extra byte at `$FFCC`. For maximum
+compatibility with historical tooling, a unified firmware should prefer
+placing the command table at `$FFCC`.
+
+**See also:**
+
+- [SUBTBL](#subtbl-ffe3)
+- [TOSUB](#tosub-ffbe)
+- [MonZ](#monz-ff69)
+
 ### CLRCH (\$FEE9) (Internal)
 
 **Description:**
@@ -3520,6 +3875,41 @@ the beginning of the next line.
 - [CH](#ch)
 - [CV](#cv)
 - [BASL/BASH](#basl-bash)
+
+### CRMon (\$FEF6)
+
+**Description:**
+
+Monitor helper used while processing input: treats a carriage return as
+the end-of-line terminator and returns control to the Monitor
+prompt/command loop.
+
+**Input:**
+
+- **Registers:** A/X/Y undefined.
+- **Memory:** Uses the Monitor input/parser state.
+
+**Output:**
+
+- Returns to the Monitor command loop rather than to the caller.
+
+**Side Effects:**
+
+- Discards the current command parse context and returns to
+  [MonZ](#monz-ff69).
+
+**Notes:**
+
+- Many implementations handle carriage return by calling the shared
+  \$FE00 helper ([BL1](#bl1-fe00)), which adjusts the scan index and
+  then falls into the same logic as [BLANK](#blank-fe04).
+- As part of this flow, the Monitor discards the current parse context
+  by unwinding the stack and branching back to the Monitor loop.
+
+**See also:**
+
+- [MonZ](#monz-ff69)
+- [GetLnZ](#getlnz-fd67)
 
 ### CROut (\$FD8E)
 
@@ -3892,17 +4282,19 @@ output routine ([COUT1](#cout1-fdf0)).
 
 **Description:**
 
-This routine converts an ASCII code representing a hexadecimal digit
-into its corresponding hexadecimal number. This process is initiated by
-[NxtChr (\$FFAD)](#nxtchr-ffad), which preprocesses the ASCII code
-(performing an exclusive OR with \$B0 and potentially adding \$88 for
-characters A-F) before passing it in the A register to `Dig`. `Dig` then
-shifts the conditioned character bit-by-bit into the zero-page locations
-[A2L](#a2l-a2h) (\$3E) and [A2H](#a2l-a2h) (\$3F), effectively storing
-the hexadecimal value. Control is then passed back to [NxtChr
-(\$FFAD)](#nxtchr-ffad). This combination of [NxtChr
-(\$FFAD)](#nxtchr-ffad) and `Dig` routines is essential for converting
-user-entered ASCII digits into numerical values.
+This entry point is part of the Monitor’s hex-scanning implementation.
+It converts one hexadecimal digit into a 4-bit value and shifts it into
+the 16-bit accumulator [A2L/A2H](#a2l-a2h) (\$3E/\$3F).
+
+`Dig` is reached from [NxtChr (\$FFAD)](#nxtchr-ffad) after the input
+character has been transformed into a form suitable for range checks and
+decoding. `Dig` does **not** return to its caller with `RTS`; instead it
+continues with the shared digit-scan logic and then branches back into
+`NxtChr`.
+
+Because `Dig` only shifts into a 16-bit accumulator, supplying more than
+four digits while building a value naturally discards earlier (high)
+digits and retains only the most recent four.
 
 **Input:**
 
@@ -3930,9 +4322,12 @@ user-entered ASCII digits into numerical values.
 
 **Side Effects:**
 
-- Converts an ASCII hexadecimal digit to its numerical equivalent.
-- Stores the result in [A2L/A2H](#a2l-a2h).
-- Transfers control back to [NxtChr (\$FFAD)](#nxtchr-ffad).
+- Decodes a single digit and shifts it into [A2L/A2H](#a2l-a2h).
+- When [MODE](#mode) is `$00`, each accepted digit also causes the
+  current accumulated value in `A2` to be copied into `A1` and `A3`
+  (i.e., `A1L/A1H` and `A3L/A3H` track the same value while scanning).
+- Transfers control back into [NxtChr (\$FFAD)](#nxtchr-ffad) rather
+  than returning via `RTS`.
 
 **See also:**
 
@@ -3951,14 +4346,11 @@ It is functionally identical to [KeyIn0](#keyin0-fd18).
 **Input:**
 
 - **Registers:**
-  - A: N/A
-  - X: N/A
-  - Y: Index register Y, used with BASL for memory access (older ROMs).
+  - A/X/Y: Passed through to the routine pointed to by
+    [KSWL/KSWH](#kswl-kswh).
 - **Memory:**
-  - [KSWL/KSWH](#kswl-kswh) (address \$36-\$37): The 16-bit address of
+  - [KSWL/KSWH](#kswl-kswh) (address \$38-\$39): The 16-bit address of
     the currently active standard input routine.
-  - [BASL/BASH](#basl-bash) (address \$28-\$29): Base address of the
-    current line, used for indirect memory access (older ROMs).
 
 **Output:**
 
@@ -4298,13 +4690,19 @@ features such as:
 **Description:**
 
 This routine scans the Monitor’s input buffer, starting at the offset
-specified in the Y register. It decodes ASCII codes representing
-hexadecimal numbers into their corresponding hexadecimal values and
-stores them in the zero-page locations [A2L/A2H](#a2l-a2h) (\$3E/\$3F).
-The scanning continues until it encounters an ASCII code that is not a
-valid hexadecimal digit. `GetNum` relies on [NxtChr
-(\$FFAD)](#nxtchr-ffad) to test, parse, and decode these hexadecimal
-numbers.
+specified in the Y register. It decodes consecutive hexadecimal digits
+and accumulates the value into the 16-bit register [A2L/A2H](#a2l-a2h)
+(\$3E/\$3F). Scanning continues until a character is encountered that is
+not a hexadecimal digit. `GetNum` relies on [NxtChr
+(\$FFAD)](#nxtchr-ffad) (and its helper [Dig (\$FF8A)](#dig-ff8a)) to
+recognize and decode digits.
+
+Because the accumulator is only 16 bits wide, each additional hex digit
+shifts the current value left by 4 bits and inserts the new nibble; if
+more than four digits are supplied, the high bits are discarded and the
+final value naturally ends up as the last four hex digits. When a caller
+uses only the low byte ([A2L](#a2l-a2h)) as the result, the effect is
+similarly “last two hex digits.”
 
 **Input:**
 
@@ -4354,7 +4752,8 @@ based on the initial value of the X register. Following this, it calls
 the [Restore](#restore-ff3f) routine to set the A, X, Y, and P registers
 from saved values in [A5H](#a5h), [XREG](#xreg), [YREG](#yreg), and
 [STATUS](#status) respectively. Finally, it performs an indirect jump to
-the address contained in [PCL/PCH](#pcl-pch).
+the address contained in [PCL/PCH](#pcl-pch) and does not return to its
+caller.
 
 **Input:**
 
@@ -4534,13 +4933,13 @@ vertical cursor’s zero-page location ([OURCV](#ourcv)).
 
 **Description:**
 
-`HeadR ($FCC9)` in the Apple IIc ROM is an obsolete entry point that
+In Apple IIc firmware, `HeadR ($FCC9)` is an obsolete entry point that
 consists solely of a return from subroutine (`RTS`) instruction. While
-earlier ROM versions might have contained different or more extensive
-code at this address, the IIc implementation makes it a non-functional
-entry point that immediately returns control to the caller. The entry
-point at this address is documented as referring to a “usable gap” of
-memory of `0x0043` bytes.
+earlier firmware revisions might have contained different or more
+extensive code at this address, the IIc implementation makes it a
+non-functional entry point that immediately returns control to the
+caller. The entry point at this address is documented as referring to a
+“usable gap” of memory of `0x0043` bytes.
 
 **Input:**
 
@@ -4566,7 +4965,7 @@ memory of `0x0043` bytes.
 
 This routine effectively moves the text cursor to the upper-left corner
 of the current text window and then clears the text display from that
-position to the end of the current page. In the Apple IIc ROM, it
+position to the end of the current page. In IIc-family firmware, it
 achieves this by first calling the internal helper routine
 [HOMECUR](#homecur-cda5) to position the cursor, and then flowing into
 the [CLREOP2](#clreop2-fc44) routine to clear the screen.
@@ -4639,10 +5038,10 @@ the [CLREOP2](#clreop2-fc44) routine to clear the screen.
 
 **Description:**
 
-This routine is part of the documented Apple system identification
-interface for distinguishing 8-bit Apple II systems from 16-bit systems
-(Apple IIgs). On 8-bit Apple II family computers (Apple II through Apple
-IIc), this location contains a single return from subroutine (`RTS`)
+This routine is part of the documented system identification interface
+for distinguishing 8-bit Apple II systems from 16-bit systems (Apple
+IIgs). On 8-bit Apple II family computers (Apple II through Apple IIc),
+this location contains a single return from subroutine (`RTS`)
 instruction. It immediately returns control to the caller without
 performing any operations or modifying any registers or memory
 locations.
@@ -4767,9 +5166,10 @@ This is an **internal helper routine** responsible for setting the
 system’s input/output vectors ([KSWL/KSWH](#kswl-kswh) or
 [CSWL/CSWH](#cswl-cswh)). It is called by routines like
 [INPRT](#inprt-fe8d) (for input) and [OutPort](#outport-fe95) (for
-output). The behavior of this routine has evolved across ROM versions.
+output). The behavior of this routine has evolved across firmware
+revisions.
 
-**In earlier ROMs (Apple II/IIe unenhanced):** This routine reads a
+**In earlier firmware (Apple II/IIe unenhanced):** This routine reads a
 “port number” from [A2L](#a2l-a2h), masks it, and then either loads the
 address of [COUT1](#cout1-fdf0) (if [A2L](#a2l-a2h) indicates slot 0 and
 Y register, which is assumed to contain `<KEYIN` from
@@ -4778,7 +5178,7 @@ Y register, which is assumed to contain `<KEYIN` from
 [LOC0](#loc0) and [LOC1](#loc1), which are subsequently used to update
 the relevant I/O hooks.
 
-**In the Apple IIc ROM:** This routine (identified by its entry point
+**IIc-family behavior:** This routine (identified by its entry point
 address and functionality) also reads [A2L](#a2l-a2h) as its primary
 input. Its logic is more complex, involving conditional branches based
 on the value in [A2L](#a2l-a2h) (checking if it’s slot 0) and the Y
@@ -4851,8 +5251,35 @@ input/output routine.
 
 **Description:**
 
-This address contains an `RTS` instruction. On Apple II systems with
-expansion slots, peripheral cards can use this to determine their slot.
+This address contains an `RTS` instruction.
+
+Its primary purpose as a documented entry point is to support
+**slot-relative addressing** in peripheral ROM code: a peripheral ROM
+can `JSR $FF58`, then examine the return address pushed by the `JSR` to
+determine which `$Cnxx` page it is executing from.
+
+#### Slot detection using IORTS
+
+When a peripheral ROM is executing in slot *n* (at `$Cn00-$CnFF`), it
+can derive *n* by reading the return address high byte from the stack:
+
+1.  `JSR $FF58` pushes the return address (`$Cn..`) onto the stack.
+2.  `IORTS` immediately returns (`RTS`).
+3.  The peripheral ROM reads the return address high byte (`$Cn`) from
+    the stack.
+4.  Shifting that high byte left 4 times yields the common “slot index”
+    value `n << 4` used for indexed I/O accesses like `LDA $C080,X`.
+
+**Example:**
+
+            JSR     $FF58           ; Call IORTS (pushes return address onto stack)
+            TSX                     ; X = stack pointer
+            LDA     $0100,X         ; A = return address high byte ($Cn)
+            ASL     A
+            ASL     A
+            ASL     A
+            ASL     A
+            TAX                     ; X = n << 4 (slot index)
 
 **Input:**
 
@@ -4890,9 +5317,10 @@ to their pre-interrupt state. Notably, unlike in earlier Apple II
 models, location `$45` is specifically preserved, ensuring its value is
 not inadvertently destroyed during interrupt processing.
 
-**Note (Variant Difference):** In the Original Apple II ROM (OrigF8ROM),
-the IRQ handler is located at \$FA86 rather than \$FA40. The Apple II+,
-IIe, and IIc ROMs standardized on the \$FA40 address documented here.
+**Note (Variant Difference):** In the original Apple II firmware, the
+IRQ handler is located at \$FA86 rather than \$FA40. Later systems
+(Apple II+, IIe, IIc) standardized on the \$FA40 address documented
+here.
 
 **Input:**
 
@@ -5200,10 +5628,10 @@ bypassed, and control transfers directly to [VidOut](#vidout-fbfd).
 **Description:**
 
 This routine is the primary keyboard input subroutine. It reads a
-keypress directly from the Apple keyboard. Before returning, it
-randomizes the random-number seed stored in [RNDL/RNDH](#rndl-rndh)
-(\$4E/\$4F). When a key is pressed, it removes the cursor from the
-display and returns the ASCII code of the pressed key in the A register.
+keypress directly from the keyboard. Before returning, it randomizes the
+random-number seed stored in [RNDL/RNDH](#rndl-rndh) (\$4E/\$4F). When a
+key is pressed, it removes the cursor from the display and returns the
+ASCII code of the pressed key in the A register.
 
 **Input:**
 
@@ -5327,6 +5755,48 @@ line.
 - [WNDBTM](#wndbtm)
 - [BASL/BASH](#basl-bash)
 
+### LT (\$FE20)
+
+**Description:**
+
+Monitor command handler for the “`<`” delimiter used by the `M` (Move)
+and `V` (Verify) commands.
+
+This routine copies the 16-bit value currently in [A2L/A2H](#a2l-a2h)
+into both [A4L/A4H](#a4l-a4h) and `A5L/A5H` (\$44/\$45). This sets up
+the destination pointer used by [Move](#move-fe2c) /
+[Verify](#verify-fe36), and also preserves the same address in A5.
+
+**Input:**
+
+- **Memory:**
+  - [A2L/A2H](#a2l-a2h) = address parsed from the command line
+    (right-hand side of the delimiter)
+
+**Output:**
+
+- **Memory:**
+  - [A4L/A4H](#a4l-a4h) updated to the A2 value
+  - `A5L/A5H` (\$44/\$45) updated to the A2 value
+
+**Side Effects:**
+
+- Prepares Monitor address variables for subsequent Move/Verify
+  execution.
+
+**Notes:**
+
+- Monitor-internal helper reached from the `CHRTBL`/`SUBTBL` dispatcher;
+  not intended as a general-purpose API.
+
+**See also:**
+
+- [Move](#move-fe2c)
+- [Verify](#verify-fe36)
+- [A2L/A2H](#a2l-a2h)
+- [A4L/A4H](#a4l-a4h)
+- `A5L/A5H` (\$44/\$45)
+
 ### List (\$FE5E)
 
 **Description:**
@@ -5367,6 +5837,37 @@ after the last disassembled one. It calls internal routines like
 - [InstDsp](#instdsp-f8d0)
 - [A1L/A1H](#a1l-a1h)
 
+### Mini (\$FE6C)
+
+**Description:**
+
+Monitor command handler that enters a built-in mini-assembler, when a
+mini-assembler is provided as part of the system firmware.
+
+**Input:**
+
+- **Registers / Memory:** Monitor parser state.
+
+**Output:**
+
+- **Registers:** Undefined.
+
+**Side Effects:**
+
+- Enters the mini-assembler user interface.
+
+**Notes:**
+
+- A mini-assembler is not guaranteed to exist on all Apple II-family
+  systems. Where it exists, it is a Monitor feature.
+- Some systems instead provide similar assembler functionality outside
+  the main system firmware; that external functionality is outside the
+  scope of this specification.
+
+**See also:**
+
+- [MonZ](#monz-ff69)
+
 ### Mon (\$FF65)
 
 **Description:**
@@ -5374,7 +5875,7 @@ after the last disassembled one. It calls internal routines like
 This routine prepares the processor to enter the System Monitor. It
 clears the processor’s decimal mode flag, activates the speaker
 (generating a sound), and transfers control to the [MonZ](#monz-ff69)
-routine.
+routine. It does not return to its caller.
 
 **Input:**
 
@@ -5411,7 +5912,9 @@ This routine is the primary entry point for the System Monitor, often
 called via `CALL -151` in Applesoft BASIC. It calls
 [GetLnZ](#getlnz-fd67) to display the asterisk (`*`) prompt and read
 input, then invokes [ZMode](#zmode-ffc7) to clear the Monitor mode flag,
-finally passing control to the Monitor’s command-line parser.
+finally passing control to the Monitor’s command-line parser. It does
+not return to its caller in normal operation; the Monitor continues
+running until a command transfers control elsewhere.
 
 **Input:**
 
@@ -5437,7 +5940,12 @@ finally passing control to the Monitor’s command-line parser.
 - Displays a Monitor prompt.
 - Reads user command input.
 - Clears the internal Monitor mode flag.
-- Transfers control to the Monitor’s command-line parser.
+- Enters the Monitor’s command-line parser, which can execute multiple
+  command items from a single input line.
+- During command dispatch, the parser saves its current scan index (Y)
+  in [YSAV](#ysav), dispatches a command handler via
+  [TOSUB](#tosub-ffbe), then restores Y from [YSAV](#ysav) and continues
+  scanning the remainder of the input line.
 
 **See also:**
 
@@ -5455,7 +5963,9 @@ This routine is an alternative entry point to the System Monitor,
 similar to [MonZ](#monz-ff69). `MonZ4` does not automatically call
 [GetLnZ](#getlnz-fd67) or [ZMode](#zmode-ffc7). Programs using `MonZ4`
 must first read input and clear the Monitor mode flag before
-transferring control.
+transferring control. It does not return to its caller in normal
+operation; the Monitor continues running until a command transfers
+control elsewhere.
 
 **Input:**
 
@@ -5728,13 +6238,14 @@ of [A1L/A1H](#a1l-a1h) with [A2L/A2H](#a2l-a2h) and increments
 
 This routine plays a crucial role in parsing hexadecimal input from the
 Monitor’s input buffer. It tests each character (starting from the
-offset in the Y register) to determine if it is an ASCII code for a
-hexadecimal digit (0-9, A-F). If a valid hexadecimal character is found,
-`NxtChr` preprocesses it (including converting lowercase to uppercase)
-and then calls the [Dig (\$FF8A)](#dig-ff8a) routine to decode the ASCII
-value into its corresponding hexadecimal number, which is stored in
-[A2L/A2H](#a2l-a2h). `NxtChr` then continues to the next character in
-the buffer.
+offset in the Y register) to determine if it is a hexadecimal digit
+(`0`–`9`, `A`–`F`).
+
+The digit test is performed by transforming the input character and
+comparing it against small ranges (an implementation uses an XOR with
+`$B0` as part of the normalization). If a valid digit is found, control
+passes through [Dig (\$FF8A)](#dig-ff8a) to shift the digit into
+[A2L/A2H](#a2l-a2h).
 
 **Input:**
 
@@ -5764,11 +6275,17 @@ the buffer.
 **Side Effects:**
 
 - Processes characters from the Monitor’s input buffer.
-- Converts lowercase hexadecimal ASCII to uppercase.
-- Calls [Dig (\$FF8A)](#dig-ff8a) to decode hexadecimal digits.
 - Stores decoded hexadecimal numbers in [A2L/A2H](#a2l-a2h).
+- When [MODE](#mode) is `$00`, each accepted digit causes the current
+  accumulated value in `A2` to be copied into `A1` and `A3` (performed
+  by [Dig (\$FF8A)](#dig-ff8a) as part of the digit-accept flow).
 - Updates the Y register to point to the next character in the input
   buffer.
+
+**Notes:**
+
+- [Dig (\$FF8A)](#dig-ff8a) is part of the hex-scanning flow and returns
+  to `NxtChr` via a branch, not a normal `RTS` return.
 
 **See also:**
 
@@ -5875,8 +6392,8 @@ This routine serves as a break handler that prints information about the
 registers (A, X, Y, P, S) that are stored in zero page locations
 ([A5H](#a5h), [XREG](#xreg), [YREG](#yreg), [STATUS](#status),
 [SPNT](#spnt), [PCL/PCH](#pcl-pch)). After printing this information, it
-jumps to the Monitor. This routine is present in Apple II+, Apple IIe,
-and Apple //c ROMs.
+jumps to the Monitor. This entry point is present in Apple II+, Apple
+IIe, and Apple IIc firmware.
 
 **Input:**
 
@@ -5934,7 +6451,7 @@ screen display routine) and [KSWL/KSWH](#kswl-kswh) to point to
 it passes control to the Monitor entry point [Mon (\$FF65)](#mon-ff65),
 which then clears the 6502 processor’s decimal mode flag, sounds the
 speaker, and fully enters the Monitor. This routine does not return to
-its caller.
+its caller (it transfers control to the Monitor).
 
 **Input:**
 
@@ -6535,14 +7052,14 @@ achieved by internally calling [PrByte](#prbyte-fdda).
 
 **Description:**
 
-This routine, present in Apple IIe and later ROMs, performs a cold start
-of the system, including a partial system reset. It may perform partial
-or complete initialization of the main memory range between `$0200` and
-`$BEFF`. The specific range and method of initialization can vary
-between ROM variants. The routine then attempts to start the system via
-a disk drive or AppleTalk. If no startup device is available, the
-message “Check startup Device” appears on the screen. This routine does
-not return to the calling program.
+This routine, present in Apple IIe and later systems, performs a cold
+start of the system, including a partial system reset. It may perform
+partial or complete initialization of the main memory range between
+`$0200` and `$BEFF`. The specific range and method of initialization can
+vary between hardware/firmware variants. The routine then attempts to
+start the system via a disk drive or AppleTalk. If no startup device is
+available, the message “Check startup Device” appears on the screen.
+This routine does not return to its caller in normal operation.
 
 **Input:**
 
@@ -6573,17 +7090,64 @@ not return to the calling program.
 - [Reset (\$FA62)](#reset-fa62) (for full system reset)
 - [SLOOP (\$FABA)](#sloop-faba) (startup device search loop)
 
+### REGZ (\$FEBF)
+
+**Description:**
+
+Monitor command handler that transfers control to the register-display
+logic.
+
+**Input:**
+
+- **Registers:** A/X/Y undefined.
+- **Memory:** Uses the saved-register locations documented under
+  [Save](#save-ff4a) / [Restore](#restore-ff3f).
+
+**Output:**
+
+- Does not return directly to the caller (control returns to the Monitor
+  through the Monitor’s normal flow).
+
+**Side Effects:**
+
+- Displays register state using [RegDsp](#regdsp-fad7).
+
+**Notes:**
+
+- This is typically reached via the Monitor’s command dispatcher tables
+  ([CHRTBL](#chrtbl-ffcc)/[SUBTBL](#subtbl-ffe3)).
+
+**See also:**
+
+- [RegDsp](#regdsp-fad7)
+- [Save](#save-ff4a)
+- [Restore](#restore-ff3f)
+- [MonZ](#monz-ff69)
+
 ### RdChar (\$FD35)
 
 **Description:**
 
-This routine activates escape mode and then jumps to the
-[RdKey](#rdkey-fd0c) routine to read a character from the keyboard.
+Reads a keypress for Monitor input, with recognition of the Monitor
+escape character.
 
+`RdChar` reads a key via [RdKey](#rdkey-fd0c). On systems that implement
+the Monitor escape sequences, if the key read is the escape character,
+`RdChar` transfers control to the Monitor’s escape handler, which reads
+the following character and performs the corresponding cursor/screen
+operation.
+
+**Input:**
+
+- **Registers:** A/X/Y: Undefined.
 - **Memory:**
-  - [CH](#ch) (address \$24): Horizontal position of the cursor.
-  - [BASL/BASH](#basl-bash) (address \$28-\$29): Base address of the
-    current line. **Output:**
+  - [CH](#ch) (address \$24): Cursor column (used indirectly by
+    [RdKey](#rdkey-fd0c) / the configured input path).
+  - [BASL/BASH](#basl-bash) (address \$28-\$29): Text line base (used
+    indirectly by [RdKey](#rdkey-fd0c) / the configured input path).
+
+**Output:**
+
 - **Registers:**
   - A: Contains the ASCII code of the key pressed.
   - X: Preserved
@@ -6593,14 +7157,23 @@ This routine activates escape mode and then jumps to the
 
 **Side Effects:**
 
-- Activates escape mode.
-- Transfers control to [RdKey](#rdkey-fd0c).
+- Calls (or transfers control through) [RdKey](#rdkey-fd0c).
+- On systems that implement the Monitor escape sequences, detects the
+  escape character and transfers control to the escape handler.
+
+**Notes:**
+
+- `RdChar` itself reads only a single key; escape-sequence dispatch is
+  performed by the escape handler it transfers to.
+- The escape-sequence mapping itself is part of the Monitor user
+  interface contract; see [Table: Escape
+  sequences](#table-escape-sequences).
 
 **See also:**
 
 - [RdKey](#rdkey-fd0c)
 - [KeyIn](#keyin-fd1b)
-- [Escape Sequences with RdChar](#escape-sequences-with-rdchar)
+- [Table: Escape sequences](#table-escape-sequences)
 
 ### RdKey (\$FD0C)
 
@@ -6611,6 +7184,12 @@ cursor position and transfers control to the [FD10](#fd10-fd10) routine.
 [FD10](#fd10-fd10) then indirectly jumps to the configured input routine
 (e.g., [KeyIn](#keyin-fd1b) or `C3KeyIn`). Effects like updating
 [RNDL/RNDH](#rndl-rndh) occur via the called input routine.
+
+**Escape sequences:** On systems that support Monitor escape sequences,
+the escape-enabled path is entered via [RdChar](#rdchar-fd35) (and
+`GetLnZ` typically uses that path). `RdKey` by itself is the basic “read
+a key” entry point and does not necessarily implement escape processing
+unless the caller enters through the escape-enabled path.
 
 **Input:**
 
@@ -6682,10 +7261,9 @@ routine via an `RTS` instruction, performing no other actions.
 
 **Description:**
 
-This routine displays the contents of the microprocessor’s registers and
-relevant system state information. It is primarily used by the Monitor
-for debugging and system inspection purposes. The displayed values
-typically include A, X, Y, and P registers.
+Displays the Monitor’s saved 6502 register state using the standard
+register display format (see [Standard register display
+format](#standard-register-display)).
 
 **Input:**
 
@@ -6693,8 +7271,11 @@ typically include A, X, Y, and P registers.
   - A: Undefined.
   - X: Undefined.
   - Y: Undefined.
-- **Memory:** N/A (displays current state from CPU registers and system
-  zero-page locations).
+- **Memory:**
+  - Uses the saved-register locations (for example, [A5H](#a5h),
+    [XREG](#xreg), [YREG](#yreg), [STATUS](#status), [SPNT](#spnt)),
+    which are commonly updated via [Save](#save-ff4a) and
+    [Break](#break-fa4c).
 
 **Output:**
 
@@ -6704,16 +7285,21 @@ typically include A, X, Y, and P registers.
   - Y: Undefined.
   - P: Undefined.
 - **Memory:**
-  - Screen: Displays the contents of the registers and system state
-    information.
+  - Output stream: prints the formatted register line.
 
 **Side Effects:**
 
-- Outputs register and system state information to the screen.
+- Outputs a leading carriage return and then a single formatted register
+  line (see [Standard register display
+  format](#standard-register-display)).
 
 **See also:**
 
-- [Mon (\$FF69)](#monz-ff69) (Monitor entry point)
+- [Standard register display format](#standard-register-display)
+- [REGZ](#regz-febf)
+- [Save](#save-ff4a)
+- [Restore](#restore-ff3f)
+- [Break](#break-fa4c)
 
 ### Reset (\$FA62)
 
@@ -6748,6 +7334,9 @@ performs the following initialization sequence:
     - If cold start is required: Jumps to [PwrUp](#pwrup-faa6)
     - If warm start: Jumps to the address in [SOFTEV](#softev)
       (\$03F2-\$03F3)
+
+Reset does not return to its caller in normal operation; it ends by
+transferring control via one of the jumps above.
 
 **Input:**
 
@@ -6882,6 +7471,59 @@ respectively.
 - [YREG](#yreg)
 - [STATUS](#status)
 
+### SetMode (\$FE18)
+
+**Description:**
+
+Monitor helper that updates the Monitor mode byte ([MODE](#mode)) based
+on a recently-parsed command character in the Monitor input buffer.
+
+In common Monitor implementations, `SetMode` is used by the command
+dispatcher for the `:`, `.`, `+`, and `-` tokens.
+
+- `:` selects store/fill behavior (subsequent parsed values are stored
+  to memory starting at the current data pointer).
+- `+` / `-` select the “expression” behavior used by the Monitor’s
+  examine loop: the next parsed value is combined with the current
+  address (typically `A1`) using addition or subtraction, and the result
+  is printed.
+- `.` selects an address-delimiter behavior used by some commands.
+
+`SetMode` itself typically only records the token in `MODE`; the actual
+store or add/subtract operation is performed later by the main Monitor
+parser loop.
+
+**Input:**
+
+- **Registers:**
+  - Y = Index into the input buffer (used to locate the
+    previously-parsed character).
+- **Memory:**
+  - [INBUF](#inbuf) (Monitor input buffer; the routine reads a prior
+    byte)
+  - [MODE](#mode) (updated)
+
+**Output:**
+
+- **Registers:** A/Y/X undefined.
+- **Memory:**
+  - [MODE](#mode) updated.
+
+**Side Effects:**
+
+- Changes how subsequent Monitor input is interpreted.
+
+**Notes:**
+
+- This is an internal Monitor routine reached from the command
+  dispatcher; it is not typically called directly by applications.
+
+**See also:**
+
+- [MonZ](#monz-ff69)
+- [GetNum](#getnum-ffa7)
+- [MODE](#mode)
+
 ### SETX (\$CE1A) (Internal)
 
 **Description:**
@@ -6956,31 +7598,67 @@ the calling program.
 - [LOC0](#loc0)
 - [LOC1](#loc1)
 
+### StepZ (\$FE71)
+
+**Description:**
+
+Monitor command handler for single-step execution.
+
+**Input:**
+
+- **Registers / Memory:** Monitor parser state (not intended as a
+  general-purpose API).
+
+**Output:**
+
+- Hardware/firmware dependent.
+
+**Side Effects:**
+
+- Hardware/firmware dependent.
+
+**Notes:**
+
+- On Apple II/II+ firmware, `STEPZ` is at \$FEC4 and participates in
+  step execution (often after optionally copying a specified address
+  into the program counter via [A1PC](#a1pc-fe75)).
+- On some later systems (e.g., unenhanced IIe), the historical
+  trace/step entry points exist but return immediately.
+- On the IIc 32KB firmware family, the step handler appears at \$FE71.
+
+**See also:**
+
+- [Trace](#trace-fe6f)
+- [A1PC](#a1pc-fe75)
+- [Go](#go-feb6)
+
 ### SUBTBL (\$FFE3)
 
 **Description:**
 
-This is the **Monitor Routine Offset Table** used by the Monitor command
-dispatcher. It contains a series of 16-bit offsets corresponding to each
-command character in the ASCII Command Table ([CHRTBL](#chrtbl-ffcc) at
-\$FFCC). When a user enters a Monitor command, the character is looked
-up in CHRTBL to find its index, then that same index is used to retrieve
-the corresponding offset from SUBTBL, which is used to dispatch to the
-appropriate handler routine.
+This is the **Monitor dispatch table** used by the Monitor command
+dispatcher. It contains one byte per Monitor command character listed in
+the paired ASCII Command Table ([CHRTBL](#chrtbl-ffcc) at \$FFCC). When
+a user enters a Monitor command, the character is looked up in CHRTBL to
+find its index, then that same index is used to retrieve the
+corresponding dispatch byte from SUBTBL; the dispatcher (typically
+[TOSUB](#tosub-ffbe)) uses that byte to transfer control to the matching
+command handler.
 
-This table is located at a fixed address (\$FFE3) to ensure
-compatibility with external diagnostic tools and to maintain consistent
-command dispatch behavior across Apple II ROM variants.
+This table is commonly located at a fixed address (`$FFE3`) for
+compatibility with historical tooling and to maintain consistent command
+dispatch behavior across systems.
 
 **Structure:**
 
-The table consists of 16-bit offset values (low byte, then high byte).
-Each offset corresponds to a routine that handles the associated command
-from CHRTBL.
+The table consists of single-byte dispatch values. In common Monitor
+implementations, these values are used as low-order return-address bytes
+for an RTS-based dispatcher (see [TOSUB](#tosub-ffbe)).
 
-**Fixed Address:** This table **must** remain at `$FFE3` for
-compatibility with external diagnostic tools and software that may
-reference this address directly.
+**Compatibility note (address):** Many systems place this table at
+`$FFE3`, but some IIc-family implementations place it at `$FFE0`. For
+maximum compatibility with historical tooling, a unified firmware should
+prefer placing the dispatch table at `$FFE3`.
 
 **Input:** N/A (this is a data table, not a routine).
 
@@ -7115,6 +7793,9 @@ new line.
   - P: Undefined
 - **Memory:**
   - Text memory within the active window is scrolled upwards.
+  - [BAS2L/BAS2H](#bas2l-bas2h) (address \$2A-\$2B): Overwritten (used
+    as a temporary destination line base address during the scroll
+    copy).
 
 **Side Effects:**
 
@@ -7262,7 +7943,7 @@ rather than an expansion slot device.
 
 **Hardware Details:** This routine internally sets [A2L](#a2l-a2h) to
 \$00 and calls [InPort](#inport-fe8b) to configure the input hooks. The
-effect is to reset standard input to ROM-based keyboard input.
+effect is to reset standard input to built-in keyboard input.
 
 **Input:**
 
@@ -7434,7 +8115,8 @@ rather than an expansion slot device.
 
 **Hardware Details:** This routine internally sets [A2L](#a2l-a2h) to
 \$00 and calls [OutPort](#outport-fe95) to configure the output hooks.
-The effect is to reset standard output to ROM-based screen display.
+The effect is to reset standard output to built-in screen display
+output.
 
 **Input:**
 
@@ -7569,10 +8251,10 @@ carriage return.
 
 **Description:**
 
-This routine serves as a dispatcher to execute other ROM subroutines
-whose entry points are listed in the [SUBTBL](#subtbl-ffe3) lookup
-table. It is typically invoked after identifying a command character via
-the monitor’s command interpreter.
+This routine serves as a dispatcher to execute other firmware
+subroutines whose entry points are listed in the [SUBTBL](#subtbl-ffe3)
+lookup table. It is typically invoked after identifying a command
+character via the monitor’s command interpreter.
 
 `TOSUB` works by:
 
@@ -7597,8 +8279,9 @@ the monitor’s command interpreter.
 - **Memory:**
   - [MODE](#mode) (address \$31): The current monitor mode byte. Its
     initial value is read.
-  - [SUBTBL](#subtbl-ffe3) (address \$FFE0): A table of low-order
-    subroutine entry point addresses.
+  - [SUBTBL](#subtbl-ffe3): A table of per-command dispatch bytes used
+    by the Monitor dispatcher (commonly located at `$FFE3`, but some
+    implementations place it elsewhere).
 
 **Output:**
 
@@ -7623,6 +8306,39 @@ the monitor’s command interpreter.
 - [MODE](#mode)
 - [MONZ](#monz-ff69) (Monitor entry points that use `TOSUB`)
 - [GO](#go-feb6) (Used as the high-order address for dispatch)
+
+### Trace (\$FE6F)
+
+**Description:**
+
+Monitor command handler for trace-mode control.
+
+**Input:**
+
+- **Registers / Memory:** Monitor parser state (not intended as a
+  general-purpose API).
+
+**Output:**
+
+- Hardware/firmware dependent.
+
+**Side Effects:**
+
+- Hardware/firmware dependent.
+
+**Notes:**
+
+- On Apple II/II+ firmware, `TRACE` is at \$FEC2 and participates in
+  step/trace execution.
+- On some later systems (e.g., unenhanced IIe), the historical
+  trace/step entry points exist but return immediately.
+- On the IIc 32KB firmware family, the trace handler appears at \$FE6F
+  and is paired with [StepZ](#stepz-fe71).
+
+**See also:**
+
+- [StepZ](#stepz-fe71)
+- [MonZ](#monz-ff69)
 
 ### TabV (\$FB5B)
 
@@ -7667,6 +8383,39 @@ and updates [CV](#cv) with the new line number.
 - [VTabZ](#vtabz-fc24)
 - [CV](#cv)
 - [BASL/BASH](#basl-bash)
+
+### USR (\$FECA)
+
+**Description:**
+
+Monitor command handler that jumps through the user vector in RAM (the
+Control-Y/USR entry), allowing system software to install a custom
+Monitor command handler.
+
+**Input:**
+
+- **Registers:** A/X/Y undefined (not used as inputs).
+- **Memory:** User vector in RAM (commonly labeled `USRADR`, typically
+  at \$03F8).
+
+**Output:**
+
+- Does not return unless the user handler returns.
+
+**Side Effects:**
+
+- Transfers control to the user-installed handler.
+
+**Notes:**
+
+- This is typically reached via the Monitor’s command dispatcher tables
+  ([CHRTBL](#chrtbl-ffcc)/[SUBTBL](#subtbl-ffe3)).
+
+**See also:**
+
+- [MonZ](#monz-ff69)
+- [TOSUB](#tosub-ffbe)
+- [SUBTBL](#subtbl-ffe3)
 
 ### Up (\$FC1A)
 
@@ -7869,7 +8618,7 @@ If bytes mismatch, it prints the address, a hyphen, the first byte, and
     first block.
   - [A2L/A2H](#a2l-a2h) (address \$3E-\$3F): Ending address of the first
     block.
-  - [A4L/A4H](#a4l-a4h) (address \$40-\$41): Beginning address of the
+  - [A4L/A4H](#a4l-a4h) (address \$42-\$43): Beginning address of the
     second block.
 
 **Output:**
@@ -8168,6 +8917,36 @@ routine via an `RTS` instruction, performing no other actions.
 
 - [Read](#read-fefd)
 
+### XBASIC (\$FEB0)
+
+**Description:**
+
+Monitor command handler that transfers control to the resident BASIC
+interpreter’s cold-start entry.
+
+**Input:**
+
+- Monitor internal state.
+
+**Output:**
+
+- Does not return to the Monitor in normal operation.
+
+**Side Effects:**
+
+- Enters BASIC cold start.
+
+**Notes:**
+
+- This routine is Monitor-internal and is typically reached via `Ctrl+B`
+  in the Monitor command table on later firmware revisions (for example,
+  IIc-family systems).
+
+**See also:**
+
+- [BASCONT](#bascont-feb3) — BASIC warm start/continue
+- [MonZ](#monz-ff69)
+
 ### ZIDByte (\$FBC0)
 
 **Description:**
@@ -8252,8 +9031,8 @@ The symbols are organized into two categories:
   memory buffers located elsewhere in the address space
 
 Understanding these symbols is essential for implementing compatible
-firmware or writing software that interacts directly with the ROM
-routines.
+firmware or writing software that interacts directly with the firmware
+entry points.
 
 ### Zero-Page Definitions
 
@@ -8269,25 +9048,58 @@ routines.
 | \$25 | <a id="cv"></a>CV | Current Vertical Cursor Position. | Current row number of the text cursor within the window. |
 | \$26-\$27 | <a id="gbasl-gbash"></a>GBASL/GBASH | Lo-Res Graphics Base Address. | 16-bit pointer to the start of a Lo-Res graphics display row. |
 | \$28-\$29 | <a id="basl-bash"></a>BASL/BASH | Text Screen Base Address. | 16-bit pointer to the start of a text display line. |
-| \$2A-\$2B | <a id="a2l-a2h"></a>A2L/A2H | General-purpose 16-bit Address/Value 2. | General-purpose 16-bit register for temporary storage, comparisons, or loop bounds. |
+| \$2A-\$2B | <a id="bas2l-bas2h"></a>BAS2L/BAS2H | Scroll destination base address (temporary). | Temporary 16-bit pointer used by text scrolling routines as the destination line address while copying screen rows upward; not a stable API and should not be assumed preserved across firmware routine calls. |
 | \$2C | <a id="h2"></a>H2 | HLine Rightmost Horizontal Position. | Used by the HLine routine to determine the rightmost horizontal position to plot. |
 | \$2D | <a id="v2"></a>V2 | VLine Bottommost Vertical Position. | Used by the VLine routine to determine the bottommost vertical position to plot. |
 | \$2F | <a id="length"></a>LENGTH | Length/Amount for Operations. | Defines an increment amount (e.g., for PCAdj, it is 1 less than the actual increment). |
 | \$30 | <a id="color"></a>COLOR | Current Lo-Res Graphics Color. | Stores the 4-bit color value (\$00-\$0F) for Lo-Res graphics plotting. |
-| \$31 | <a id="mode"></a>MODE | Monitor Mode Byte. | Tracks the current Monitor mode; used internally to determine program execution context and input handling. |
+| \$31 | <a id="mode"></a>MODE | Monitor Mode Byte. | Tracks the current Monitor mode; used internally to control how command syntax and parsed hexadecimal values are interpreted. Implementations typically store the current mode token (often the parsed command delimiter/operator) rather than a separate numeric enumeration. |
 | \$32 | <a id="invflg"></a>INVFLG | Inverse Text Flag. | Controls whether subsequent text output is displayed in normal or inverse video. \$3F = inverse, \$FF = normal. |
 | \$33 | <a id="prompt"></a>PROMPT | Prompt Character ASCII Code. | Stores the ASCII code (high bit set) for the command prompt character. |
+| \$34 | <a id="ysav"></a>YSAV | Monitor Parser Index Save. | Saves the Monitor’s current input-buffer scan index (Y) so parsing can resume after dispatching a command handler. |
+| \$35 | <a id="ysav1"></a>YSAV1 | Temporary Y Register Save. | Temporary storage used by routines that need to preserve the 6502 Y register across internal calls. |
 | \$36-\$37 | <a id="cswl-cswh"></a>CSWL/CSWH | Current Standard Output Hook. | Low (\$36) and high (\$37) bytes of a 16-bit pointer to the currently active standard output routine. |
 | \$38-\$39 | <a id="kswl-kswh"></a>KSWL/KSWH | Current Standard Input Hook. | Low (\$38) and high (\$39) bytes of a 16-bit pointer to the currently active standard input routine. |
 | \$3A-\$3B | <a id="pcl-pch"></a>PCL/PCH | Program Counter Low/High. | Low (\$3A) and high (\$3B) bytes of the 6502 Program Counter; used by Monitor routines. |
-| \$3C-\$3D | <a id="a1l-a1h"></a>A1L/A1H | 16-bit Address/Value 1. | General-purpose 16-bit register, often used as a source address pointer. |
-| \$3E-\$3F | <a id="a4l-a4h"></a>A4L/A4H | 16-bit Address/Value 4. | General-purpose 16-bit register, often used as a destination address pointer. |
-| \$45 | <a id="a5h"></a>A5H | Accumulator (A) Register copy. | Stores a copy of the 6502 Accumulator (A) register for preservation or restoration. |
+| \$3C-\$3D | <a id="a1l-a1h"></a>A1L/A1H | Monitor address pointer (A1). | 16-bit pointer used by Monitor commands as the current/“last opened” address (varies by command). |
+| \$3E-\$3F | <a id="a2l-a2h"></a>A2L/A2H | Monitor address pointer (A2). | 16-bit pointer used by Monitor commands as an end address / limit address (varies by command). |
+| \$40-\$41 | <a id="a3l-a3h"></a>A3L/A3H | Monitor address pointer (A3). | 16-bit pointer used internally by some Monitor routines (for example, as a destination pointer for multi-byte stores). |
+| \$42-\$43 | <a id="a4l-a4h"></a>A4L/A4H | Monitor address pointer (A4). | 16-bit pointer used by Monitor commands as a destination address (for example, MOVE/VERIFY). |
+| \$44 | <a id="a5l"></a>A5L | Monitor temp / scratch (A5 low). | Low byte of a 16-bit Monitor temporary used by some Monitor routines. Also reused by some routines for other internal state. |
+| \$45 | <a id="a5h"></a>A5H | Accumulator (A) Register copy. | Stores a copy of the 6502 Accumulator (A) register for preservation or restoration; also serves as the high byte of the Monitor temporary `A5L/A5H`. |
 | \$46 | <a id="xreg"></a>XREG | X Register copy. | Stores a copy of the 6502 X-index register for preservation or restoration. |
 | \$47 | <a id="yreg"></a>YREG | Y Register copy. | Stores a copy of the 6502 Y-index register for preservation or restoration. |
 | \$48 | <a id="status"></a>STATUS | Processor Status (P) Register copy. | Stores a copy of the 6502 Processor Status (P) register for preservation or restoration. |
 | \$49 | <a id="spnt"></a>SPNT | Stack Pointer (S) Register copy. | Stores a copy of the 6502 Stack Pointer (S) register for preservation or restoration. |
-| \$4E-\$4F | <a id="rndl-rndh"></a>RNDL/RNDH | Random Number Low/High. | Low (\$4E) and high (\$4F) bytes of a 16-bit seed used for random number generation. |
+| \$4E-\$4F | <a id="rndl-rndh"></a>RNDL/RNDH | Random Number Low/High. | Low (\$4E) and high (\$4F) bytes of a 16-bit seed used for random number generation. Updated by keyboard input routines to provide a changing seed value. |
+
+#### Maintaining the random seed (`RNDL/RNDH`)
+
+The standard keyboard input routine [KeyIn](#keyin-fd1b) (and compatible
+input handlers) should update `RNDL/RNDH` as part of normal
+key-wait/key-read operation (for example, by repeatedly incrementing the
+16-bit value while waiting for a keypress). Software (including BASIC)
+relies on this location changing over time to obtain a non-constant
+pseudo-random seed.
+
+No specific update algorithm or reset-time initialization value is
+required by the contract; the requirement is simply that keyboard input
+causes `RNDL/RNDH` to change in a way that provides usable variability.
+
+#### Monitor mode (`MODE`) values
+
+`MODE` is a Monitor-internal state byte. Implementations commonly set it
+to `$00` for the default “normal/examine” state (see
+[ZMode](#zmode-ffc7)). When command syntax introduces an operator or
+delimiter that changes how subsequent input is interpreted (for example
+store mode or expression add/subtract), implementations commonly store a
+code corresponding to that parsed token.
+
+**Implementation note:** In common Monitor implementations,
+[SetMode](#setmode-fe18) stores the parsed command character itself into
+`MODE` (rather than mapping it to a separate set of small integers).
+This makes the set of nonzero `MODE` values effectively tied to the
+command language.
 
 ### Other Definitions
 
@@ -8296,7 +9108,7 @@ routines.
 | \$0200 | <a id="inbuf"></a>INBUF | Monitor Input Buffer. | 128-byte buffer for storing user input lines, typically in the Monitor or command-line input routines. |
 | \$03F0-\$03F1 | <a id="brkv"></a>BRKV | Break Instruction Vector (IIe+). | 16-bit pointer executed when BRK (\$00) instruction is encountered. Default points to Monitor Break handler. Used for debugging and system break handling. Added in Apple IIe; not present in original Apple II/II+. |
 | \$03F2-\$03F3 | <a id="softev"></a>SOFTEV | Warm Start / Soft Power-On Vector (IIe+). | 16-bit pointer to warm-start routine. Executed on RESET if \[SOFTEV XOR (SOFTEV+1) = PWREDUP\], indicating a clean shutdown. Default points to firmware initialization. Added in Apple IIe. |
-| \$03F4 | PWREDUP | Power-Up Detection Byte (IIe+). | Single byte containing magic value for warm-start detection. Valid value = SOFTEV+1 XOR \$A5 (complement of high byte). If this value matches, RESET is treated as warm start instead of cold start. Added in Apple IIe. |
+| \$03F4 | PWREDUP | Validity-Check / Power-Up Byte (IIe+). | Single byte used with [SOFTEV](#softev) to decide whether RESET is treated as a warm start (jump through SOFTEV) or a cold start. On systems that implement the standard validity check, PWREDUP must equal (SOFTEV high byte XOR \$A5). For example, if SOFTEV is set to \$FF69 (Monitor), PWREDUP must be \$FF XOR \$A5 = \$5A. |
 | \$03F8-\$03F9 | USRADR | User Address / Applesoft Exit Vector. | 16-bit pointer executed by `POP` instruction (simulated via stack manipulation) or Applesoft END statement. Default points to Monitor. Used for returning from user programs. Present in all Apple II variants. |
 | \$03FB-\$03FC | NMI | Non-Maskable Interrupt Handler Vector. | 16-bit pointer executed when NMI (non-maskable interrupt) signal is asserted. Used for system-critical interrupt handling. Present in all Apple II variants. |
 | \$03FE-\$03FF | <a id="irqloc"></a>IRQLOC | Interrupt Request Handler Vector. | 16-bit pointer executed when IRQ (maskable interrupt) signal is asserted. Default points to firmware IRQ handler. Present in all Apple II variants. |
@@ -8309,7 +9121,8 @@ routines.
 | \$C000 | KBD | Keyboard Data Register. | Read: Returns last key pressed, with bit 7 set (\$80 |
 | \$C010 | KBDSTRB | Keyboard Strobe Register. | Read/Write: Reading clears the keyboard interrupt. Must be read to acknowledge keyboard input. |
 | \$C01A | <a id="rdtext"></a>RDTEXT | Read Text Mode Soft Switch. | Software switch; reads as non-zero (\$FF) if in text mode, zero if in graphics mode. Used to check current display mode. |
-| \$FFCC | CHRTBL | Monitor ASCII Command Table. | Table of ASCII characters corresponding to Monitor commands (e.g., ‘G’, ‘X’, ‘A’, ‘L’, ‘S’). Located at fixed address for compatibility with external tools. |
+| \$FFCC | <a id="chrtbl-ffcc"></a>CHRTBL | Monitor ASCII Command Table. | Table of command characters corresponding to Monitor commands (letters, punctuation, and control characters). Located at fixed address for compatibility with external tools. |
+| \$FFE3 | <a id="subtbl-ffe3"></a>SUBTBL | Monitor Dispatch Table. | Table of per-command dispatch entries paired with CHRTBL; used by the Monitor dispatcher (e.g., [TOSUB](#tosub-ffbe)) to transfer control to the selected command handler. |
 
 ## Peripheral Controller ROMs
 
@@ -8328,7 +9141,8 @@ secondary boot loader (BOOT1) from disk into system memory at \$0800.
 
 **Key Functions:**
 
-- Initialize disk controller (IWM - Integrated Woz Machine) hardware
+- Initialize disk controller hardware (Disk II controller
+  latch/phase/motor controls)
 - Generate 6+2 encoding decoder table for disk data
 - Seek disk head to track 0
 - Read track 0, sector 0 (boot sector) from disk
@@ -8344,8 +9158,8 @@ secondary boot loader (BOOT1) from disk into system memory at \$0800.
 
 **Hardware Accessed:**
 
-- IWM Control Registers (\$C080-\$C08F range) - Stepper motor and drive
-  control
+- Disk II controller I/O addresses (\$C080-\$C08F in the slot I/O
+  space) - Stepper motor and drive control
 - System RAM (\$0300-\$0BFF) - Decoder tables and data buffers
 
 **Memory Usage:**
@@ -8405,9 +9219,17 @@ generation.
 
 ##### Identification Method
 
-**DOS 3.2 and 3.3** do not implement a standardized identification
-protocol. Boot detection is based simply on the presence of executable
-code at the slot’s boot ROM address.
+**DOS 3.2 and 3.3** do not implement a standardized ID-byte protocol. In
+practice, early boot processes either:
+
+- Attempt to execute a slot ROM at `$Cn00` directly, or
+- Use a minimal pattern check specific to the intended boot device
+  family.
+
+For compatibility-focused system firmware that wants deterministic
+behavior across devices, prefer the explicit ID-byte checks described
+under **Protocol 3** (ProDOS/SmartPort), even if the target OS is a
+DOS-family system.
 
 ##### Boot ROM Requirements
 
@@ -8473,7 +9295,7 @@ and may cause system failures.
 ##### Apple IIc Built-in Ports
 
 The IIc includes built-in ports that follow the Pascal 1.1 protocol.
-Different ROM versions identified by the Version byte at \$FBBF:
+Different firmware revisions identified by the Version byte at \$FBBF:
 
 **IIc ROM 1st version** (\$FBBF = \$FF):
 
@@ -8679,23 +9501,31 @@ into memory.
 - **Size:** 256 bytes (\$C600-\$C6FF)
 - **Entry Point:** \$C600 (when selected as boot ROM)
 
-#### Code Organization
+#### Code Organization (Illustrative)
 
-    $C600-$C602   Initialization & setup
-    $C603-$C650   6+2 decoder table generation
-    $C651-$C65B   Blind seek to track 0
-    $C65C-$C6D3   Read sector routine (core)
-    $C6D4-$C6FB   Decode 6+2 data & loop control
-    $C6FC-$C6FF   Spare bytes
+The addresses below describe a common historical layout of the 256-byte
+Disk II boot ROM. This is **not a required contract**: implementations
+may organize internal code differently, provided they preserve the
+externally-observable behavior (entry points, I/O usage, and on-disk
+format expectations).
+
+    $Cn00-$Cn02   Initialization & setup
+    $Cn03-$Cn50   6+2 decoder table generation
+    $Cn51-$Cn5B   Blind seek to track 0
+    $Cn5C-$CnD3   Read sector routine (core)
+    $CnD4-$CnFB   Decode 6+2 data & loop control
+    $CnFC-$CnFF   Spare bytes
 
 ------------------------------------------------------------------------
 
 ### Hardware Interface
 
-#### IWM (Integrated Woz Machine) Registers
+#### Disk II Controller I/O Addresses
 
-The Disk II controller uses the IWM chip for low-level disk operations.
-Access is via memory-mapped I/O in the slot I/O area (\$C000-\$C0FF).
+The Disk II controller is controlled via memory-mapped I/O in the slot
+I/O area (\$C000-\$C0FF). The registers at offsets \$80-\$8F are latches
+that control the stepper phases, motor, drive select, and the Q6/Q7
+read/write mode lines.
 
 #### Drive Control Registers
 
@@ -8737,12 +9567,12 @@ Where:
 - Slot 5: \$C500 + \$80 = \$C580
 - Slot 1: \$C100 + \$80 = \$C180
 
-**Important:** ROM implementations must use indexed addressing to remain
+**Important:** Implementations must use indexed addressing to remain
 slot-independent:
 
     ; Assume X = (slot_number << 4), e.g., X = $60 for slot 6
-    LDA $C080,X     ; Load from appropriate slot's IWM register
-    STA $C089,X     ; Store to appropriate slot's motor-on register
+    LDA $C080,X     ; Access controller register in the selected slot
+    STA $C089,X     ; Turn motor on (slot-relative)
 
 This allows the ROM to work in any slot without hardcoding addresses.
 Absolute addressing (e.g., `LDA $C680`) would restrict the ROM to a
@@ -8754,7 +9584,7 @@ specific slot.
 |----|----|----|----|----|
 | \$C08C + n\*\$100 | \$8C | DATA_IN | Read | Read data from disk (requires Q6=0, Q7=0) |
 | \$C08D + n\*\$100 | \$8D | STATUS | Read/Write | Check write-protect (read); initialize Q6 (write) |
-| \$C08E + n\*\$100 | \$8E | IWM_SEQUENCER | Read/Write | Reset state sequencer (read); write-protect check (read) |
+| \$C08E + n\*\$100 | \$8E | SEQUENCER_RESET | Read | Reset state sequencer (read); write-protect check (read) |
 | \$C08F + n\*\$100 | \$8F | DATA_OUT | Write | Write data to disk (requires indexed addressing) |
 
 **Data Transfer:**
@@ -8827,54 +9657,7 @@ The DISK ROM calls or references:
 
 #### Slot Detection Using IORTS
 
-The Disk II ROM does not require knowledge of which slot it occupies;
-instead, it can determine its slot at runtime by calling
-[IORTS](#iorts-ff58) (\$FF58). This routine provides a generic mechanism
-for peripheral ROMs to identify their installed slot:
-
-**Slot Detection Method:**
-
-When a peripheral ROM is executing in slot n (at \$Cn00-\$CnFF), it can
-determine its slot number as follows:
-
-1.  **Call IORTS via JSR \$FF58** - This calls a simple RTS instruction
-    in main firmware
-2.  **The return address is pushed to the stack** - The return address
-    (\$Cn00 + offset within the ROM) is pushed by JSR
-3.  **Read return address high byte** - Extract the high byte from the
-    stack using TSX and indexed addressing
-4.  **Convert to slot offset** - Multiply the high byte by 16 (via 4
-    left shifts) to get the slot offset for indexed I/O addressing
-
-**Assembly Example:**
-
-            JSR     $FF58           ; Call IORTS (pushes return address onto stack)
-            TSX                     ; Transfer S register to X (X = stack offset)
-            LDA     $0100,X         ; Read return address high byte ($Cn) from stack
-            ASL     A               ; Shift left 4 times to convert $Cn to $Cn0
-            ASL     A               ; (multiply by 16 for slot-relative addressing)
-            ASL     A
-            ASL     A
-            TAX                     ; X now = slot_number << 4 (for indexed I/O access)
-
-**Why This Works:**
-
-When the firmware calls the peripheral ROM via `JMP (LOC0)` where LOC0
-points to \$Cn00, the ROM executes at address \$Cn00-\$CnFF. When the
-ROM calls `JSR $FF58` (IORTS):
-
-- The return address (\$Cn00 + offset) is automatically pushed onto the
-  6502 stack
-- IORTS is just an RTS instruction that immediately returns
-- The peripheral ROM can read its own return address from the stack to
-  determine n (the slot number)
-- Converting the high byte via 4 left shifts produces the slot index for
-  use in indexed I/O operations
-
-This elegant mechanism allows peripheral ROMs to be completely
-slot-independent; they don’t need slot information passed in a register
-or stored in ROM—they determine their own slot by examining the return
-address on the stack.
+See [IORTS (\$FF58)](#iorts-ff58).
 
 ------------------------------------------------------------------------
 
@@ -8896,7 +9679,7 @@ address on the stack.
 | Address | Name | Purpose |
 |----|----|----|
 | \$26-\$27 | data_ptr | Pointer to BOOT1 data buffer location |
-| \$2B | slot_index | Slot number \<\< 4 (for IWM register addressing) |
+| \$2B | slot_index | Slot number \<\< 4 (for slot-relative controller I/O addressing) |
 | \$3C | bits | Temporary storage for bit manipulation during 6+2 decoding |
 | \$3D | sector | Sector number being read |
 | \$40 | found_track | Track found during seek |
@@ -8957,7 +9740,7 @@ initializes the Disk II controller and loads the bootstrap code (BOOT1).
 
 **Side Effects:**
 
-- IWM hardware registers accessed (stepper motor, drive motor)
+- Controller I/O accessed (stepper phases, drive select, motor control)
 - Disk drive motor started and stopped
 - Disk head positioned to track 0
 - System memory modified (\$0300-\$0BFF range)
@@ -9005,7 +9788,7 @@ decodes the sector data.
   - sector (\$3D): Sector number to find and read (0-15)
   - track (\$41): Track number being read
   - CONV_TAB (\$0356-\$03D5): Must be initialized with 6+2 decoder table
-  - IWM registers accessible at \$C000 + slot offset
+  - Controller I/O accessible via the slot I/O space (offsets \$80-\$8F)
 
 **Output:**
 
@@ -9022,7 +9805,7 @@ decodes the sector data.
 
 **Side Effects:**
 
-- IWM registers accessed for disk read
+- Controller I/O accessed for disk read
 - Timing-sensitive disk operations performed
 - Disk head may seek if sector not on current track
 - Memory access via indirect addressing (data_ptr)
@@ -9089,7 +9872,7 @@ The DISK ROM generates the decoder table at runtime (code
     DISK ROM Entry ($C600) called via relative jump ($Cn01)
         ↓
     [ENTRY routine - as documented above]
-        ├── Initialize IWM hardware
+        ├── Initialize disk controller hardware
         ├── Generate 6+2 decoder table
         ├── Seek to track 0
         ├── Read track 0, sector 0 (boot sector)
@@ -9114,7 +9897,7 @@ The DISK ROM reads disk sectors and stores them in the BOOT1 buffer
   - BOOT1 code includes its own size as first byte
   - This allows variable-sized boot code
 
-#### IWM Timing
+#### Disk Timing
 
 Critical timing operations use the MON_WAIT routine (\$FCA8):
 
@@ -9131,22 +9914,23 @@ Critical timing operations use the MON_WAIT routine (\$FCA8):
 The DISK ROM is slot-independent. When placed in slot n:
 
 - Entry address: \$Cn00 (not \$C600)
-- IWM registers accessed: \$C080 + (n \<\< 4)
+- Controller I/O accessed: \$C080 + (n \<\< 4)
 - Invoked as: `JMP $Cn01` (relative jump to actual \$C600 entry)
 
 #### Typical Slot 6 Configuration
 
 - **ROM Address:** \$C600-\$C6FF
-- **IWM Base:** \$C600 (phasing registers at \$C680-\$C68F)
+- **Controller I/O base (slot-relative):** \$Cn80 (i.e., \$C680-\$C68F
+  in slot 6)
 - **Slot Index (X register):** \$60 (6 \<\< 4)
 
 #### Multi-Slot Support
 
 The Disk II controller can be placed in any slot (typically 6 or 5):
 
-- Slot 5: ROM at \$C500-\$C5FF, IWM at \$C580-\$C58F
-- Slot 6: ROM at \$C600-\$C6FF, IWM at \$C680-\$C68F
-- Slot 7: ROM at \$C700-\$C7FF, IWM at \$C780-\$C78F
+- Slot 5: ROM at \$C500-\$C5FF, controller I/O at \$C580-\$C58F
+- Slot 6: ROM at \$C600-\$C6FF, controller I/O at \$C680-\$C68F
+- Slot 7: ROM at \$C700-\$C7FF, controller I/O at \$C780-\$C78F
 
 ------------------------------------------------------------------------
 
@@ -9237,7 +10021,6 @@ each requirement.
   Apple II, II+, IIe, and IIc systems
 - Enhanced Disk II controllers (third-party) may have variations in
   implementation
-- Later Apple systems (IIgs) use different disk controllers (3.5”
-  drives)
+- Later systems (IIgs) use different disk controllers (3.5” drives)
 - This ROM is typically auto-detected when a Disk II controller is
   present in an expansion slot

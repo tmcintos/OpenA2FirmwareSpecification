@@ -16,7 +16,12 @@ The protocol used depends on the target operating system and system generation.
 
 ##### Identification Method
 
-**DOS 3.2 and 3.3** do not implement a standardized identification protocol. Boot detection is based simply on the presence of executable code at the slot's boot ROM address.
+**DOS 3.2 and 3.3** do not implement a standardized ID-byte protocol. In practice, early boot processes either:
+
+- Attempt to execute a slot ROM at `$Cn00` directly, or
+- Use a minimal pattern check specific to the intended boot device family.
+
+For compatibility-focused system firmware that wants deterministic behavior across devices, prefer the explicit ID-byte checks described under **Protocol 3** (ProDOS/SmartPort), even if the target OS is a DOS-family system.
 
 ##### Boot ROM Requirements
 

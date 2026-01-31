@@ -224,7 +224,7 @@ IIe can switch between slot ROMs and internal ROMs via SLOTCXROM ($C006/$C007).
 
 System firmware ROM containing:
 
-- $D000-$F7FF: Applesoft BASIC interpreter (10KB)
+- $D000-$F7FF: BASIC interpreter (10KB; historically Integer BASIC or Applesoft BASIC depending on system/firmware)
 - $F800-$FFFF: Monitor and system routines (2KB)
 
 Can be shadowed by language card RAM on II/II+/IIe systems.
@@ -272,8 +272,8 @@ Can be shadowed by language card RAM on II/II+/IIe systems.
 
 #### See Also
 
-- **[RAM Initialization and Memory Detection](#ram-initialization-and-memory-detection)** - Boot-time memory configuration
-- **[Auxiliary RAM and Memory Soft Switches](#auxiliary-ram-and-memory-soft-switches)** - Extended memory details
+- **[System Boot and Initialization](#system-boot-and-initialization)** - Boot-time memory initialization and configuration
+- **[I/O and Soft Switches](#io-and-soft-switches)** - Auxiliary RAM mapping soft switches
 - **[ROM Organization and Banking](#rom-organization-and-banking)** - ROM structure and language card
 - **[Zero-Page Definitions](#zero-page-definitions)** - System variable reference
 - **[Hardware Variants and Identification](#hardware-variants-and-identification)** - Model-specific memory configurations

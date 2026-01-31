@@ -18,4 +18,5 @@
 | $C000 | KBD | Keyboard Data Register. | Read: Returns last key pressed, with bit 7 set ($80 | ASCII code). Used for polling keyboard input. |
 | $C010 | KBDSTRB | Keyboard Strobe Register. | Read/Write: Reading clears the keyboard interrupt. Must be read to acknowledge keyboard input. |
 | $C01A | <a id="rdtext"></a>RDTEXT | Read Text Mode Soft Switch. | Software switch; reads as non-zero ($FF) if in text mode, zero if in graphics mode. Used to check current display mode. |
-| $FFCC | CHRTBL | Monitor ASCII Command Table. | Table of command characters corresponding to Monitor commands (letters, punctuation, and control characters). Located at fixed address for compatibility with external tools. |
+| $FFCC | <a id="chrtbl-ffcc"></a>CHRTBL | Monitor ASCII Command Table. | Table of command characters corresponding to Monitor commands (letters, punctuation, and control characters). Located at fixed address for compatibility with external tools. |
+| $FFE3 | <a id="subtbl-ffe3"></a>SUBTBL | Monitor Dispatch Table. | Table of per-command dispatch entries paired with CHRTBL; used by the Monitor dispatcher (e.g., [TOSUB](#tosub-ffbe)) to transfer control to the selected command handler. |

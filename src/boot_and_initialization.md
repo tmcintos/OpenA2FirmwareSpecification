@@ -81,7 +81,7 @@ The firmware reset entry point initializes the system and decides whether to per
    - Set IRQLOC (IRQ handler)
 
 9. **Scan for Peripheral Boot:**
-   - Check slots for boot signature
+   - Scan slots for a bootable storage controller using ProDOS/SmartPort ID bytes (see [Boot ROM Identification Protocols](#boot-rom-identification-protocols), Protocol 3)
    - Jump to first boot entry found
    - Fall through to Monitor/BASIC if none
 
@@ -236,15 +236,25 @@ After firmware initialization, control may transfer to peripheral device boot RO
 - **Size:** 256 bytes ($Cn00-$CnFF per slot)
 - **Example:** Disk II controller in slot 6 = $C600-$C6FF
 
-**Slot Scan Algorithm:**
+**Slot Scan Algorithm (Autostart-style boot):**
 
-Firmware scans slots sequentially:
+For maximum compatibility, system firmware should use the **ProDOS block device / SmartPort ID bytes** (see **[Boot ROM Identification Protocols](#boot-rom-identification-protocols)**, Protocol 3) to decide whether a slot contains a bootable mass-storage controller.
+
+A concrete, widely-compatible check is:
+
+- Read **$Cn01**, **$Cn03**, **$Cn05** and require: `$20`, `$00`, `$03`.
+- Read **$Cn07** to distinguish device type:
+  - `$00` indicates a **SmartPort**-style device.
+  - Nonzero values indicate a **traditional block device controller**; Disk II-compatible controllers commonly use a nonzero value (historically `$3C` on many Apple II-family systems).
+
+If the slot matches the expected signature for a bootable controller, transfer control to the slot boot entry at **$Cn00**.
+
 ```
 FOR slot = 7 DOWN TO 1
-    Check $Cn00 for boot signature
-    IF valid signature THEN
+    IF ($Cn01 == $20) AND ($Cn03 == $00) AND ($Cn05 == $03) THEN
+        ; Optional: consult $Cn07 to distinguish SmartPort vs traditional controller.
         JSR $Cn00
-        (Boot ROM executes)
+        ; (Boot ROM executes)
     END IF
 NEXT slot
 ```

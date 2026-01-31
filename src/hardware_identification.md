@@ -146,7 +146,7 @@ For software portability, use these standard model identification constants:
 
 **ROM Organization:**
 
-- **Apple II/II+:** 8KB ROM (12KB with autostart, can be shadowed in language card $D000-$FFFF)
+- **Apple II/II+:** Firmware mapped into $D000-$FFFF (12KB address space; actual ROM population varies by firmware revision, and later “autostart” firmware typically uses the full window)
 - **Apple IIe:** 16KB ROM (main and auxiliary/slot ROM areas)
 - **Apple IIc:** 16KB or 32KB ROM (banked via $C028)
 
@@ -208,6 +208,6 @@ This behavior does not apply to Apple IIc (which always uses internal ROM).
 #### See Also
 
 - **[IDRoutine ($FE1F)](#idroutine-fe1f)** - System identification entry point
-- **[RAM Initialization and Memory Detection](#ram-initialization-and-memory-detection)** - Memory configuration details
+- **[System Boot and Initialization](#system-boot-and-initialization)** - Memory initialization and configuration
 - **[ROM Organization and Banking](#rom-organization-and-banking)** - ROM banking and structure
 - **[I/O and Soft Switches](#io-and-soft-switches)** - Soft switch reference including SLOTCXROM/SLOTC3ROM
