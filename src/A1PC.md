@@ -2,7 +2,7 @@
 
 **Description:**
 
-This is an **internal helper routine** primarily used by other ROM routines (e.g., [Go](#go-feb6)) to conditionally copy a 16-bit address from the zero-page locations [A1L/A1H](#a1l-a1h) to the program counter ([PCL/PCH](#pcl-pch)). Its behavior is dependent on the initial value of the X register. If the X register is zero on entry, the routine performs no copy and returns immediately. If X is non-zero (typically $01), it copies the contents of [A1L/A1H](#a1l-a1h) to [PCL/PCH](#pcl-pch).
+This is an **internal helper routine** primarily used by other firmware routines (e.g., [Go](#go-feb6)) to conditionally copy a 16-bit address from the zero-page locations [A1L/A1H](#a1l-a1h) to the program counter ([PCL/PCH](#pcl-pch)). Its behavior is dependent on the initial value of the X register. If the X register is zero on entry, the routine performs no copy and returns immediately. If X is non-zero (typically $01), it copies the contents of [A1L/A1H](#a1l-a1h) to [PCL/PCH](#pcl-pch).
 
 **Input:**
 

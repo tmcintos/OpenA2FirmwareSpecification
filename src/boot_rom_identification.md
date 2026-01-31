@@ -77,7 +77,7 @@ Using these bytes to identify such devices can produce incorrect results and may
 
 ##### Apple IIc Built-in Ports
 
-The IIc includes built-in ports that follow the Pascal 1.1 protocol. Different ROM versions identified by the Version byte at $FBBF:
+The IIc includes built-in ports that follow the Pascal 1.1 protocol. Different firmware revisions identified by the Version byte at $FBBF:
 
 **IIc ROM 1st version** ($FBBF = $FF):
 

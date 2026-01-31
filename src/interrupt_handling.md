@@ -179,7 +179,7 @@ A common historical technique is to snapshot the active mapping into a compact s
 
 #### Example historical state-byte encoding (illustrative)
 
-Some ROMs encode memory configuration using an 8-bit value along these lines:
+Some implementations encode memory configuration using an 8-bit value along these lines:
 
 | Bit | Meaning (example) |
 |-----|--------------------|

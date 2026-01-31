@@ -2,7 +2,7 @@
 
 **Description:**
 
-`HeadR ($FCC9)` in the Apple IIc ROM is an obsolete entry point that consists solely of a return from subroutine (`RTS`) instruction. While earlier ROM versions might have contained different or more extensive code at this address, the IIc implementation makes it a non-functional entry point that immediately returns control to the caller. The entry point at this address is documented as referring to a "usable gap" of memory of `0x0043` bytes.
+In Apple IIc firmware, `HeadR ($FCC9)` is an obsolete entry point that consists solely of a return from subroutine (`RTS`) instruction. While earlier firmware revisions might have contained different or more extensive code at this address, the IIc implementation makes it a non-functional entry point that immediately returns control to the caller. The entry point at this address is documented as referring to a "usable gap" of memory of `0x0043` bytes.
 
 **Input:**
 

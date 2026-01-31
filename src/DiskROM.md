@@ -79,7 +79,7 @@ Where:
 - Slot 5: $C500 + $80 = $C580
 - Slot 1: $C100 + $80 = $C180
 
-**Important:** ROM implementations must use indexed addressing to remain slot-independent:
+**Important:** Implementations must use indexed addressing to remain slot-independent:
 
 ```
 ; Assume X = (slot_number << 4), e.g., X = $60 for slot 6
@@ -538,6 +538,6 @@ See the detailed sections below for complete technical specifications of each re
 
 - This documentation covers the standard Disk II controller ROM found in Apple II, II+, IIe, and IIc systems
 - Enhanced Disk II controllers (third-party) may have variations in implementation
-- Later Apple systems (IIgs) use different disk controllers (3.5" drives)
+- Later systems (IIgs) use different disk controllers (3.5" drives)
 - This ROM is typically auto-detected when a Disk II controller is present in an expansion slot
 

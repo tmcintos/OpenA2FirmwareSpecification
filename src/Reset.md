@@ -22,6 +22,8 @@ This routine, called by the processor's reset vector, initializes the system and
    - If cold start is required: Jumps to [PwrUp](#pwrup-faa6)
    - If warm start: Jumps to the address in [SOFTEV](#softev) ($03F2-$03F3)
 
+Reset does not return to its caller in normal operation; it ends by transferring control via one of the jumps above.
+
 **Input:**
 
 *   **Registers:**

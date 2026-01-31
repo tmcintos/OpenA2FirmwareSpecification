@@ -199,7 +199,7 @@ Interrupts can occur during any bank configuration:
    - Default bank selection on reset
    - Interrupt behavior during bank switching
 
-**Note:** ROM banking and language card features are provided by hardware. The ROM firmware uses these features but does not implement them. Hardware or emulator implementation is responsible for:
+**Note:** ROM banking and language card features are provided by hardware. The system firmware uses these features but does not implement them. Hardware or emulator implementation is responsible for:
 
 - Responding to banking soft switch reads/writes
 - Managing the actual bank switching logic
@@ -220,7 +220,7 @@ Interrupts can occur during any bank configuration:
 3. **Use Documented Entry Points:**
    - Use cross-bank jump tables when available
    - Don't rely on undocumented banking behavior
-   - Test on multiple ROM versions
+   - Test on multiple firmware revisions
 
 #### ROM Banking State Bits
 

@@ -6,9 +6,9 @@ This specification documents the application programming interface (API) contrac
 
 The specification enables:
 
-- Development of compatible ROMs in space-constrained configurations (4K minimum to full 32K banked)
-- Understanding of the firmware contract without requiring access to proprietary Apple source code
-- Clean-room implementation of ROM components
+- Development of compatible firmware images in space-constrained configurations (4K minimum to full 32K banked)
+- Understanding of the firmware contract without requiring access to proprietary source code
+- Clean-room implementation of firmware components
 - Software compatibility verification
 
 ### How to Use This Document
@@ -25,7 +25,7 @@ This technical reference is organized to provide progressive understanding, from
 3. **Interrupt Handling** - BRK, IRQ, and NMI interrupts, memory state preservation, vector usage
 4. **Monitor User Interface** - Monitor commands, escape sequences, control characters, command dispatcher
 5. **Summary of Firmware Entry Points** - Quick reference table of all entry points with addresses
-6. **Detailed Firmware Entry Points** - Complete documentation of all system ROM routines with:
+6. **Detailed Firmware Entry Points** - Complete documentation of all system firmware routines with:
     - Input/output register contracts
     - Memory effects and side effects
     - Internal dependencies and call chains
@@ -56,7 +56,7 @@ This specification defines a **capability‑based firmware API contract** for th
 - **Truthful Capability Advertisement**  
   ROM ID bytes must represent the **lowest historical capability tier** for which the firmware implements the complete and correct behavior defined by this specification. Implementations may provide additional features beyond that tier, but must not claim a tier whose full behavior they do not implement.
 
-- **Support for Subset and Superset ROMs**  
+- **Support for Subset and Superset Firmware Images**  
   Implementations are not required to match any historical Apple II ROM. A firmware image may omit rarely used features, add new ones, or combine capabilities in non‑historical ways, as long as it fully implements the tier it advertises and accurately reports any additional capabilities.
 
 - **Contract Fidelity**  

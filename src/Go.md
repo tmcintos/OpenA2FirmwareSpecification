@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine facilitates a jump to a user-specified subroutine address, after optionally updating the program counter (PC) and restoring certain meta-registers. It first calls the internal helper routine [A1PC](#a1pc-fe75), which conditionally copies the 16-bit address from [A1L/A1H](#a1l-a1h) to [PCL/PCH](#pcl-pch) (Program Counter Low/High) based on the initial value of the X register. Following this, it calls the [Restore](#restore-ff3f) routine to set the A, X, Y, and P registers from saved values in [A5H](#a5h), [XREG](#xreg), [YREG](#yreg), and [STATUS](#status) respectively. Finally, it performs an indirect jump to the address contained in [PCL/PCH](#pcl-pch).
+This routine facilitates a jump to a user-specified subroutine address, after optionally updating the program counter (PC) and restoring certain meta-registers. It first calls the internal helper routine [A1PC](#a1pc-fe75), which conditionally copies the 16-bit address from [A1L/A1H](#a1l-a1h) to [PCL/PCH](#pcl-pch) (Program Counter Low/High) based on the initial value of the X register. Following this, it calls the [Restore](#restore-ff3f) routine to set the A, X, Y, and P registers from saved values in [A5H](#a5h), [XREG](#xreg), [YREG](#yreg), and [STATUS](#status) respectively. Finally, it performs an indirect jump to the address contained in [PCL/PCH](#pcl-pch) and does not return to its caller.
 
 **Input:**
 

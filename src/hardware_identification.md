@@ -4,7 +4,7 @@
 
 The Apple II family encompasses multiple 8-bit hardware variants spanning over a decade of evolution. Each variant has different capabilities, memory configurations, and peripheral support. Firmware and software can detect which hardware variant is present using standardized identification bytes stored in ROM at fixed addresses.
 
-This section documents the official Apple hardware identification methods as specified in Apple II Miscellaneous Technical Notes #7 and #2.
+This section documents the official hardware identification methods as specified in Apple II Miscellaneous Technical Notes #7 and #2.
 
 **References:**
 
@@ -35,7 +35,7 @@ This section documents the official Apple hardware identification methods as spe
 
 #### Identification Byte Locations
 
-Apple provides standardized ROM identification bytes that software can read to determine hardware type and ROM revision. All identification bytes reside in the main ROM bank and must be read with main ROM switched in.
+The ROM provides standardized identification bytes that software can read to determine hardware type and ROM revision. All identification bytes reside in the main ROM bank and must be read with main ROM switched in.
 
 **Primary Identification Bytes:**
 

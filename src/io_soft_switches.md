@@ -313,7 +313,7 @@ See [ROM Organization and Banking](#rom-organization-and-banking) for cross-bank
    - II/II+: No auxiliary memory or 80-column switches available
    - Detect hardware capabilities and adapt firmware behavior
 
-**Note:** Soft switches are hardware features provided by the Apple II system. ROM firmware uses these switches but does not implement them. Hardware or emulator implementation is responsible for:
+**Note:** Soft switches are hardware features provided by the Apple II system. System firmware uses these switches but does not implement them. Hardware or emulator implementation is responsible for:
 
 - Responding to soft switch reads/writes
 - Implementing the actual hardware state changes

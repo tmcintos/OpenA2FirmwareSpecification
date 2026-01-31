@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine performs a warm restart, typically after a `RESET` or `MON` command. It initializes the text display to normal characters, clears the screen, and sets the input and output hooks. Specifically, it configures [CSWL/CSWH](#cswl-cswh) to point to [COut1](#cout1-fdf0) (the screen display routine) and [KSWL/KSWH](#kswl-kswh) to point to [KeyIn](#keyin-fd1b) (the keyboard input routine). After these setups, it passes control to the Monitor entry point [Mon ($FF65)](#mon-ff65), which then clears the 6502 processor’s decimal mode flag, sounds the speaker, and fully enters the Monitor. This routine does not return to its caller.
+This routine performs a warm restart, typically after a `RESET` or `MON` command. It initializes the text display to normal characters, clears the screen, and sets the input and output hooks. Specifically, it configures [CSWL/CSWH](#cswl-cswh) to point to [COut1](#cout1-fdf0) (the screen display routine) and [KSWL/KSWH](#kswl-kswh) to point to [KeyIn](#keyin-fd1b) (the keyboard input routine). After these setups, it passes control to the Monitor entry point [Mon ($FF65)](#mon-ff65), which then clears the 6502 processor’s decimal mode flag, sounds the speaker, and fully enters the Monitor. This routine does not return to its caller (it transfers control to the Monitor).
 
 **Input:**
 

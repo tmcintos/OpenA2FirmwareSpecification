@@ -2,7 +2,7 @@
 
 ### Overview
 
-The Apple II boot process encompasses hardware reset, firmware initialization, memory configuration, and optional peripheral device boot loading. This section documents the complete boot sequence and initialization requirements for implementing compatible ROM firmware.
+The Apple II boot process encompasses hardware reset, firmware initialization, memory configuration, and optional peripheral device boot loading. This section documents the complete boot sequence and initialization requirements for implementing compatible system firmware.
 
 ### Boot Sequence Overview
 
@@ -13,8 +13,8 @@ The complete boot process follows this sequence:
 3. **Firmware Reset Routine** - Executes system initialization code at vector address
 4. **Memory Initialization** - Clear screen, detect RAM size, initialize variables
 5. **Warm Start Detection** - Check if valid warm start signature present (IIe+)
-6. **Peripheral Slot Scan** - Check slots 1-7 for boot ROMs (II/II+/IIe only)
-7. **Peripheral Boot** - Execute first boot ROM found, if any
+6. **Peripheral Slot Scan** - Check slots 1-7 for bootable peripheral firmware (II/II+/IIe only)
+7. **Peripheral Boot** - Execute first bootable device found, if any
 8. **Default Entry** - Enter Monitor or BASIC if no boot device found
 
 ### Hardware Reset
@@ -36,7 +36,7 @@ The complete boot process follows this sequence:
 
 ### Firmware Reset Routine
 
-The firmware reset entry point initializes the system and decides whether to perform a warm start or cold start. (The entry point address differs across ROM families; see [Reset ($FA62)](#reset-fa62) for the documented contract of the Reset routine in this specification.)
+The firmware reset entry point initializes the system and decides whether to perform a warm start or cold start. (The entry point address differs across hardware families and firmware revisions; see [Reset ($FA62)](#reset-fa62) for the documented contract of the Reset routine in this specification.)
 
 **Required Initialization Steps:**
 
@@ -82,14 +82,14 @@ The firmware reset entry point initializes the system and decides whether to per
 
 9. **Scan for Peripheral Boot:**
    - Check slots for boot signature
-   - Jump to first boot ROM found
+   - Jump to first boot entry found
    - Fall through to Monitor/BASIC if none
 
 ### Memory Initialization
 
 **Cold Start Memory Clearing:**
 
-On a cold start, firmware should initialize memory and hardware into a predictable state suitable for the Monitor and for any BASIC ROM that may be present (e.g., a system pairing a historical BASIC ROM with a re-implemented system/monitor ROM).
+On a cold start, firmware should initialize memory and hardware into a predictable state suitable for the Monitor and for any BASIC image that may be present (for example, a system pairing a historical BASIC image with a re-implemented system/monitor firmware image).
 
 A common historical baseline is:
 
@@ -108,12 +108,12 @@ If maximum compatibility with legacy software is desired, clear at least the sta
 **Implementation notes:**
 
 - The specific clearing algorithm is an implementation choice, but the observable result should be a usable text display and a consistent initial Monitor/BASIC environment.
-- For performance, historical ROMs typically use indexed addressing and page-oriented loops when clearing contiguous memory ranges.
+- For performance, historical implementations typically use indexed addressing and page-oriented loops when clearing contiguous memory ranges.
 - If the implementation supports auxiliary memory banking, it should also ensure the default display and memory mapping state is well-defined at the end of reset.
 
 #### Recommended default low-memory and soft-switch state (cold start)
 
-After cold-start initialization, a compatibility-focused ROM should establish at least the following defaults (exact values may vary by ROM family, but these are common expectations):
+After cold-start initialization, a compatibility-focused firmware should establish at least the following defaults (exact values may vary by system family, but these are common expectations):
 
 - **Text output/window state:**
   - `[WNDLFT](#wndlft) = 0`
@@ -134,7 +134,7 @@ After cold-start initialization, a compatibility-focused ROM should establish at
 
 - **Soft switches (common baseline):**
   - Text mode selected, page 1 selected, and mixed/graphics modes off unless intentionally entered via a graphics init routine
-  - If auxiliary memory mapping exists, default to “main” mappings (main ZP/stack, main read/write) unless the ROM explicitly boots into an alternate mapping
+  - If auxiliary memory mapping exists, default to “main” mappings (main ZP/stack, main read/write) unless the firmware explicitly boots into an alternate mapping
 
 ### RAM Size Detection
 
@@ -340,8 +340,8 @@ RESET button behavior depends on warm start signature:
    - Set magic bytes after initialization
 
 5. **Enable Peripheral Boot:**
-   - Scan slots for boot ROMs
-   - Execute first valid boot ROM
+   - Scan slots for bootable peripheral firmware
+   - Execute first valid boot entry
    - Provide IORTS for slot detection
 
 6. **Establish Vectors:**

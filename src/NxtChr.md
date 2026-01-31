@@ -40,4 +40,4 @@ The digit test is performed by transforming the input character and comparing it
 
 *   [Dig ($FF8A)](#dig-ff8a)
 *   [GetNum ($FFA7)](#getnum-ffa7)
-*   [A2L/A2H](#a2l-a2h)
+*   [A2L/A2H](#a2l-a2h) 

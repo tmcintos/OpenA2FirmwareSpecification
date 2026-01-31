@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine clears the text display and shows the machine's "Apple II" family identification string (e.g., "Apple //e", "Apple IIGS") on the first line. It operates only in text modes and will not function in graphics or mixed modes. Note that in some earlier Apple II ROMs, the routine at this address (`$FB60`) was a multiplication routine (`MULPM`) and not the `AppleII` display routine.
+This routine clears the text display and shows the machine's "Apple II" family identification string (e.g., "Apple //e", "Apple IIGS") on the first line. It operates only in text modes and will not function in graphics or mixed modes. Note that on earlier Apple II-family firmware, the code at this address (`$FB60`) served a different purpose (a multiplication routine often labeled `MULPM`) rather than the identification-string routine.
 
 **Input:**
 

@@ -5,7 +5,7 @@
 This routine sets the output links [CSWL/CSWH](#cswl-cswh) to point to the screen display routine [COut1](#cout1-fdf0). It effectively redirects all subsequent standard output operations to the video display rather than an expansion slot device.
 
 **Hardware Details:**
-This routine internally sets [A2L](#a2l-a2h) to $00 and calls [OutPort](#outport-fe95) to configure the output hooks. The effect is to reset standard output to ROM-based screen display.
+This routine internally sets [A2L](#a2l-a2h) to $00 and calls [OutPort](#outport-fe95) to configure the output hooks. The effect is to reset standard output to built-in screen display output.
 
 **Input:**
 

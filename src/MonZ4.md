@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine is an alternative entry point to the System Monitor, similar to [MonZ](#monz-ff69). `MonZ4` does not automatically call [GetLnZ](#getlnz-fd67) or [ZMode](#zmode-ffc7). Programs using `MonZ4` must first read input and clear the Monitor mode flag before transferring control.
+This routine is an alternative entry point to the System Monitor, similar to [MonZ](#monz-ff69). `MonZ4` does not automatically call [GetLnZ](#getlnz-fd67) or [ZMode](#zmode-ffc7). Programs using `MonZ4` must first read input and clear the Monitor mode flag before transferring control. It does not return to its caller in normal operation; the Monitor continues running until a command transfers control elsewhere.
 
 **Input:**
 

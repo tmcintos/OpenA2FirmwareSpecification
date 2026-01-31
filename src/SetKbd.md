@@ -5,7 +5,7 @@
 This routine sets the input links [KSWL/KSWH](#kswl-kswh) to point to the keyboard input routine, [KeyIn](#keyin-fd1b). It effectively redirects all subsequent standard input operations to the keyboard rather than an expansion slot device.
 
 **Hardware Details:**
-This routine internally sets [A2L](#a2l-a2h) to $00 and calls [InPort](#inport-fe8b) to configure the input hooks. The effect is to reset standard input to ROM-based keyboard input.
+This routine internally sets [A2L](#a2l-a2h) to $00 and calls [InPort](#inport-fe8b) to configure the input hooks. The effect is to reset standard input to built-in keyboard input.
 
 **Input:**
 

@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine prepares the processor to enter the System Monitor. It clears the processor's decimal mode flag, activates the speaker (generating a sound), and transfers control to the [MonZ](#monz-ff69) routine.
+This routine prepares the processor to enter the System Monitor. It clears the processor's decimal mode flag, activates the speaker (generating a sound), and transfers control to the [MonZ](#monz-ff69) routine. It does not return to its caller.
 
 **Input:**
 

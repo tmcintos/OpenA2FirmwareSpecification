@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine is part of the documented Apple system identification interface for distinguishing 8-bit Apple II systems from 16-bit systems (Apple IIgs). On 8-bit Apple II family computers (Apple II through Apple IIc), this location contains a single return from subroutine (`RTS`) instruction. It immediately returns control to the caller without performing any operations or modifying any registers or memory locations.
+This routine is part of the documented system identification interface for distinguishing 8-bit Apple II systems from 16-bit systems (Apple IIgs). On 8-bit Apple II family computers (Apple II through Apple IIc), this location contains a single return from subroutine (`RTS`) instruction. It immediately returns control to the caller without performing any operations or modifying any registers or memory locations.
 
 **References:**
 

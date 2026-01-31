@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine is the primary keyboard input subroutine. It reads a keypress directly from the Apple keyboard. Before returning, it randomizes the random-number seed stored in [RNDL/RNDH](#rndl-rndh) ($4E/$4F). When a key is pressed, it removes the cursor from the display and returns the ASCII code of the pressed key in the A register.
+This routine is the primary keyboard input subroutine. It reads a keypress directly from the keyboard. Before returning, it randomizes the random-number seed stored in [RNDL/RNDH](#rndl-rndh) ($4E/$4F). When a key is pressed, it removes the cursor from the display and returns the ASCII code of the pressed key in the A register.
 
 **Input:**
 

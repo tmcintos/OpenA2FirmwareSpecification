@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine effectively moves the text cursor to the upper-left corner of the current text window and then clears the text display from that position to the end of the current page. In the Apple IIc ROM, it achieves this by first calling the internal helper routine [HOMECUR](#homecur-cda5) to position the cursor, and then flowing into the [CLREOP2](#clreop2-fc44) routine to clear the screen.
+This routine effectively moves the text cursor to the upper-left corner of the current text window and then clears the text display from that position to the end of the current page. In IIc-family firmware, it achieves this by first calling the internal helper routine [HOMECUR](#homecur-cda5) to position the cursor, and then flowing into the [CLREOP2](#clreop2-fc44) routine to clear the screen.
 
 **Input:**
 

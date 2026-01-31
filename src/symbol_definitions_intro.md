@@ -7,5 +7,5 @@ The symbols are organized into two categories:
 - **Zero-Page Definitions** - Variables stored in the fast-access zero-page memory ($0000-$00FF)
 - **Other Definitions** - System variables, hardware registers, and memory buffers located elsewhere in the address space
 
-Understanding these symbols is essential for implementing compatible firmware or writing software that interacts directly with the ROM routines.
+Understanding these symbols is essential for implementing compatible firmware or writing software that interacts directly with the firmware entry points.
 

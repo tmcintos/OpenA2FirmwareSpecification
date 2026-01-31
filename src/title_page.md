@@ -15,7 +15,7 @@ date: "January 2026"
 
 ---
 
-This document provides a detailed technical specification for 8-bit system firmware in the 6502-based Apple II family. It is intended for developers creating compatible software, implementing clean-room ROM versions, or seeking to understand the documented firmware contract.
+This document provides a detailed technical specification for 8-bit system firmware in the 6502-based Apple II family. It is intended for developers creating compatible software, implementing clean-room firmware images, or seeking to understand the documented firmware contract.
 
 ---
 
