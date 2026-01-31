@@ -6,10 +6,13 @@
 | [Advance](#advance-fbf4) | $FBF4 | Advances the text cursor's horizontal position. |
 | [AppleII](#appleii-fb60) | $FB60 | Clears screen and displays machine ID. |
 | [BasCalc](#bascalc-fbc1) | $FBC1 | Calculates 16-bit base address for text display line. |
+| [BASCONT](#bascont-feb3) | $FEB3 | Monitor command handler: transfer control to BASIC warm start (Internal). |
 | [Bell](#bell-ff3a) | $FF3A | Sends a bell character to standard output. |
 | [Bell1](#bell1-fbdd) | $FBDD | Produces a brief 1 kHz tone through the system speaker with delay. |
 | [Bell1_2](#bell1_2-fbe2) | $FBE2 | Produces a brief 1 kHz tone through the system speaker without delay. |
 | [Bell2](#bell2-fbe4) | $FBE4 | Generates a square-wave tone by toggling the system speaker for a duration. |
+| [BL1](#bl1-fe00) | $FE00 | Monitor helper: shared blank/end-of-item path used by carriage return handling (Internal). |
+| [BLANK](#blank-fe04) | $FE04 | Monitor helper: blank/skip in parser (Internal). |
 | [Break](#break-fa4c) | $FA4C | Handles processor hardware break event, saves registers, and transfers control to user hook. |
 | [BS](#bs-fc10) | $FC10 | Performs a backspace operation, decrements CH, and moves cursor up if at left edge. |
 | [ClrCH](#clrch-fee9) | $FEE9 | Clear horizontal cursor positions (Internal helper). |
@@ -22,6 +25,7 @@
 | [COut1](#cout1-fdf0) | $FDF0 | Displays ASCII character at current cursor, advances cursor, handles control characters, applies inverse flag. |
 | [COutZ](#coutz-fdf6) | $FDF6 | Alternative entry point to COut1; identical except it does not apply inverse mode at entry. |
 | [CR](#cr-fc62) | $FC62 | Executes a carriage return, moving cursor to left edge and then calling LF. |
+| [CRMon](#crmon-fef6) | $FEF6 | Monitor helper: treat carriage return as end-of-line and return to Monitor loop (Internal). |
 | [CROut](#crout-fd8e) | $FD8E | Initiates a carriage return by sending a CR character to standard output. |
 | [CROut1](#crout1-fd8b) | $FD8B | Clears to end of line, then outputs a carriage return via the current standard output. |
 | [Dig](#dig-ff8a) | $FF8A | Converts ASCII hexadecimal digit to 4-bit numerical value. |
@@ -51,6 +55,8 @@
 | [KeyIn0](#keyin0-fd18) | $FD18 | Alternate entry point for standard keyboard input, jumps to routine in KSWL/KSWH. |
 | [LF](#lf-fc66) | $FC66 | Executes a line feed, increments CV, and scrolls window up if needed. |
 | [List](#list-fe5e) | $FE5E | Disassembles and displays 20 6502 instructions to standard output. |
+| [LT](#lt-fe20) | $FE20 | Monitor command handler: list 6502 instructions (Internal). |
+| [Mini](#mini-fe6c) | $FE6C | Enter the built-in mini-assembler (where implemented). |
 | [Mon](#mon-ff65) | $FF65 | Prepares processor to enter System Monitor, clears decimal flag, activates speaker. |
 | [MonZ](#monz-ff69) | $FF69 | Primary entry point for System Monitor, displays prompt, reads input, clears mode flag. |
 | [MonZ4](#monz4-ff70) | $FF70 | Alternative entry point to System Monitor, bypasses initial prompt and mode clearing. |
@@ -83,6 +89,7 @@
 | [RdKey](#rdkey-fd0c) | $FD0C | Loads A with character at current cursor, passes control to FD10. |
 | [Read](#read-fefd) | $FEFD | Obsolete entry point, simply returns. |
 | [RegDsp](#regdsp-fad7) | $FAD7 | Displays memory state and saved A, X, Y, P, S register contents. |
+| [RegZ](#regz-febf) | $FEBF | Monitor command handler: display registers (Internal). |
 | [Reset](#reset-fa62) | $FA62 | Performs warm start initialization, checks for cold start, transfers control. |
 | [Restore](#restore-ff3f) | $FF3F | Sets A, X, Y, P registers to stored values. |
 | [Save](#save-ff4a) | $FF4A | Stores current A, X, Y, P, S registers, clears decimal mode flag. |
@@ -92,14 +99,18 @@
 | [SetGr](#setgr-fb40) | $FB40 | Sets display to mixed graphics, clears graphics screen, sets text window top. |
 | [SetInv](#setinv-fe80) | $FE80 | Sets INVFLG to $3F for inverse text output. |
 | [SetKbd](#setkbd-fe89) | $FE89 | Sets input links to point to keyboard input routine KeyIn. |
+| [SetMode](#setmode-fe18) | $FE18 | Monitor helper: update Monitor [MODE](#mode) from parsed input (Internal). |
 | [SetNorm](#setnorm-fe84) | $FE84 | Sets normal text output mode (clears inverse mode). |
 | [SetPwrC](#setpwrc-fb6f) | $FB6F | Calculates Validity-Check byte for reset vector and stores it. |
 | [SetTxt](#settxt-fb39) | $FB39 | Sets display to full-screen text window, updates BASL/BASH. |
 | [SetVid](#setvid-fe93) | $FE93 | Sets output links to point to screen display routine COut1. |
 | [SetWnd](#setwnd-fb4b) | $FB4B | Sets text window to full screen width, with top at specified line. |
+| [StepZ](#stepz-fe71) | $FE71 | Monitor command handler: step control (Internal; hardware/firmware dependent). |
 | [StorAdv](#storadv-fbf0) | $FBF0 | Places printable character on text screen, advances cursor, handles carriage return. |
 | [TabV](#tabv-fb5b) | $FB5B | Performs a vertical tab to the line specified in A, updates CV and BASL/BASH. |
+| [Trace](#trace-fe6f) | $FE6F | Monitor command handler: trace control (Internal; hardware/firmware dependent). |
 | [Up](#up-fc1a) | $FC1A | Decrements CV value, moving cursor up one line, unless at top of window. |
+| [USR](#usr-feca) | $FECA | Monitor command handler: jump through user vector in RAM (Internal). |
 | [Verify](#verify-fe36) | $FE36 | Compares contents of two memory ranges, reports mismatches. |
 | [Version](#version-fbb3) | $FBB3 | ROM identification byte, not a callable routine (value is $06). |
 | [VidOut](#vidout-fbfd) | $FBFD | Sends printable characters to StorAdv, handles control characters. |
@@ -109,6 +120,7 @@
 | [VTabZ](#vtabz-fc24) | $FC24 | Vertical tab to line specified in A register (Internal helper). |
 | [Wait](#wait-fca8) | $FCA8 | Introduces a time delay determined by the value in A register. |
 | [Write](#write-fecd) | $FECD | Obsolete entry point, simply returns. |
+| [XBASIC](#xbasic-feb0) | $FEB0 | Monitor command handler: enter Applesoft BASIC through a ROM entry point (Internal). |
 | [ZIDByte](#zidbyte-fbc0) | $FBC0 | ROM identification byte, not a callable routine ($00 for Apple IIc). |
 | [ZIDByte2](#zidbyte2-fbbf) | $FBBF | ROM identification byte, not a callable routine (depends on Apple IIc version). |
 | [ZMode](#zmode-ffc7) | $FFC7 | Stores $00 in Monitor’s Monitor Mode Byte to clear Monitor mode. |

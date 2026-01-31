@@ -2,11 +2,17 @@
 
 **Description:**
 
-This routine activates escape mode and then jumps to the [RdKey](#rdkey-fd0c) routine to read a character from the keyboard.
+Reads a keypress for Monitor input, with recognition of the Monitor escape character.
 
+`RdChar` reads a key via [RdKey](#rdkey-fd0c). On systems that implement the Monitor escape sequences, if the key read is the escape character, `RdChar` transfers control to the Monitor’s escape handler, which reads the following character and performs the corresponding cursor/screen operation.
+
+**Input:**
+
+*   **Registers:** A/X/Y: Undefined.
 *   **Memory:**
-    *   [CH](#ch) (address $24): Horizontal position of the cursor.
-    *   [BASL/BASH](#basl-bash) (address $28-$29): Base address of the current line.
+    *   [CH](#ch) (address $24): Cursor column (used indirectly by [RdKey](#rdkey-fd0c) / the configured input path).
+    *   [BASL/BASH](#basl-bash) (address $28-$29): Text line base (used indirectly by [RdKey](#rdkey-fd0c) / the configured input path).
+
 **Output:**
 
 *   **Registers:**
@@ -18,11 +24,16 @@ This routine activates escape mode and then jumps to the [RdKey](#rdkey-fd0c) ro
 
 **Side Effects:**
 
-*   Activates escape mode.
-*   Transfers control to [RdKey](#rdkey-fd0c).
+*   Calls (or transfers control through) [RdKey](#rdkey-fd0c).
+*   On systems that implement the Monitor escape sequences, detects the escape character and transfers control to the escape handler.
+
+**Notes:**
+
+- `RdChar` itself reads only a single key; escape-sequence dispatch is performed by the escape handler it transfers to.
+- The escape-sequence mapping itself is part of the Monitor user interface contract; see [Table: Escape sequences](#table-escape-sequences).
 
 **See also:**
 
 *   [RdKey](#rdkey-fd0c)
 *   [KeyIn](#keyin-fd1b)
-*   [Escape Sequences with RdChar](#escape-sequences-with-rdchar)
+*   [Table: Escape sequences](#table-escape-sequences)

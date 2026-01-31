@@ -26,6 +26,7 @@ This routine scrolls the text window up by one line, moving all characters upwar
     *   P: Undefined
 *   **Memory:**
     *   Text memory within the active window is scrolled upwards.
+    *   [BAS2L/BAS2H](#bas2l-bas2h) (address $2A-$2B): Overwritten (used as a temporary destination line base address during the scroll copy).
 
 **Side Effects:**
 

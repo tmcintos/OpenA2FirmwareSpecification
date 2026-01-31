@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine serves as a dispatcher to execute other ROM subroutines whose entry points are listed in the [SUBTBL](#subtbl-ffe3) lookup table. It is typically invoked after identifying a command character via the monitor's command interpreter.
+This routine serves as a dispatcher to execute other firmware subroutines whose entry points are listed in the [SUBTBL](#subtbl-ffe3) lookup table. It is typically invoked after identifying a command character via the monitor's command interpreter.
 
 `TOSUB` works by:
 
@@ -20,7 +20,7 @@ This routine serves as a dispatcher to execute other ROM subroutines whose entry
     *   X: N/A (used internally for stack manipulation).
 *   **Memory:**
     *   [MODE](#mode) (address $31): The current monitor mode byte. Its initial value is read.
-    *   [SUBTBL](#subtbl-ffe3) (address $FFE0): A table of low-order subroutine entry point addresses.
+    *   [SUBTBL](#subtbl-ffe3): A table of per-command dispatch bytes used by the Monitor dispatcher (commonly located at `$FFE3`, but some implementations place it elsewhere).
 
 **Output:**
 

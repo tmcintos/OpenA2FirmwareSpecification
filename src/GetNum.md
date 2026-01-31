@@ -2,7 +2,9 @@
 
 **Description:**
 
-This routine scans the Monitor’s input buffer, starting at the offset specified in the Y register. It decodes ASCII codes representing hexadecimal numbers into their corresponding hexadecimal values and stores them in the zero-page locations [A2L/A2H](#a2l-a2h) ($3E/$3F). The scanning continues until it encounters an ASCII code that is not a valid hexadecimal digit. `GetNum` relies on [NxtChr ($FFAD)](#nxtchr-ffad) to test, parse, and decode these hexadecimal numbers.
+This routine scans the Monitor’s input buffer, starting at the offset specified in the Y register. It decodes consecutive hexadecimal digits and accumulates the value into the 16-bit register [A2L/A2H](#a2l-a2h) ($3E/$3F). Scanning continues until a character is encountered that is not a hexadecimal digit. `GetNum` relies on [NxtChr ($FFAD)](#nxtchr-ffad) (and its helper [Dig ($FF8A)](#dig-ff8a)) to recognize and decode digits.
+
+Because the accumulator is only 16 bits wide, each additional hex digit shifts the current value left by 4 bits and inserts the new nibble; if more than four digits are supplied, the high bits are discarded and the final value naturally ends up as the last four hex digits. When a caller uses only the low byte ([A2L](#a2l-a2h)) as the result, the effect is similarly “last two hex digits.”
 
 **Input:**
 

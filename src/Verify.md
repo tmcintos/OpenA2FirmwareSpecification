@@ -13,7 +13,7 @@ This routine compares the contents of two memory ranges. It reads from the first
 *   **Memory:**
     *   [A1L/A1H](#a1l-a1h) (address $3C-$3D): Beginning address of the first block.
     *   [A2L/A2H](#a2l-a2h) (address $3E-$3F): Ending address of the first block.
-    *   [A4L/A4H](#a4l-a4h) (address $40-$41): Beginning address of the second block.
+    *   [A4L/A4H](#a4l-a4h) (address $42-$43): Beginning address of the second block.
 
 **Output:**
 

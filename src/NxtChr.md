@@ -2,7 +2,9 @@
 
 **Description:**
 
-This routine plays a crucial role in parsing hexadecimal input from the Monitor's input buffer. It tests each character (starting from the offset in the Y register) to determine if it is an ASCII code for a hexadecimal digit (0-9, A-F). If a valid hexadecimal character is found, `NxtChr` preprocesses it (including converting lowercase to uppercase) and then calls the [Dig ($FF8A)](#dig-ff8a) routine to decode the ASCII value into its corresponding hexadecimal number, which is stored in [A2L/A2H](#a2l-a2h). `NxtChr` then continues to the next character in the buffer.
+This routine plays a crucial role in parsing hexadecimal input from the Monitor's input buffer. It tests each character (starting from the offset in the Y register) to determine if it is a hexadecimal digit (`0`–`9`, `A`–`F`).
+
+The digit test is performed by transforming the input character and comparing it against small ranges (an implementation uses an XOR with `$B0` as part of the normalization). If a valid digit is found, control passes through [Dig ($FF8A)](#dig-ff8a) to shift the digit into [A2L/A2H](#a2l-a2h).
 
 **Input:**
 
@@ -26,10 +28,13 @@ This routine plays a crucial role in parsing hexadecimal input from the Monitor'
 **Side Effects:**
 
 *   Processes characters from the Monitor's input buffer.
-*   Converts lowercase hexadecimal ASCII to uppercase.
-*   Calls [Dig ($FF8A)](#dig-ff8a) to decode hexadecimal digits.
 *   Stores decoded hexadecimal numbers in [A2L/A2H](#a2l-a2h).
+*   When [MODE](#mode) is `$00`, each accepted digit causes the current accumulated value in `A2` to be copied into `A1` and `A3` (performed by [Dig ($FF8A)](#dig-ff8a) as part of the digit-accept flow).
 *   Updates the Y register to point to the next character in the input buffer.
+
+**Notes:**
+
+- [Dig ($FF8A)](#dig-ff8a) is part of the hex-scanning flow and returns to `NxtChr` via a branch, not a normal `RTS` return.
 
 **See also:**
 

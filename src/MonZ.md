@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine is the primary entry point for the System Monitor, often called via `CALL -151` in Applesoft BASIC. It calls [GetLnZ](#getlnz-fd67) to display the asterisk (`*`) prompt and read input, then invokes [ZMode](#zmode-ffc7) to clear the Monitor mode flag, finally passing control to the Monitor's command-line parser.
+This routine is the primary entry point for the System Monitor, often called via `CALL -151` in Applesoft BASIC. It calls [GetLnZ](#getlnz-fd67) to display the asterisk (`*`) prompt and read input, then invokes [ZMode](#zmode-ffc7) to clear the Monitor mode flag, finally passing control to the Monitor's command-line parser. It does not return to its caller in normal operation; the Monitor continues running until a command transfers control elsewhere.
 
 **Input:**
 
@@ -28,7 +28,8 @@ This routine is the primary entry point for the System Monitor, often called via
 *   Displays a Monitor prompt.
 *   Reads user command input.
 *   Clears the internal Monitor mode flag.
-*   Transfers control to the Monitor's command-line parser.
+*   Enters the Monitor’s command-line parser, which can execute multiple command items from a single input line.
+*   During command dispatch, the parser saves its current scan index (Y) in [YSAV](#ysav), dispatches a command handler via [TOSUB](#tosub-ffbe), then restores Y from [YSAV](#ysav) and continues scanning the remainder of the input line.
 
 **See also:**
 

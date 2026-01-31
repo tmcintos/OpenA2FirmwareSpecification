@@ -2,7 +2,11 @@
 
 **Description:**
 
-This routine converts an ASCII code representing a hexadecimal digit into its corresponding hexadecimal number. This process is initiated by [NxtChr ($FFAD)](#nxtchr-ffad), which preprocesses the ASCII code (performing an exclusive OR with $B0 and potentially adding $88 for characters A-F) before passing it in the A register to `Dig`. `Dig` then shifts the conditioned character bit-by-bit into the zero-page locations [A2L](#a2l-a2h) ($3E) and [A2H](#a2l-a2h) ($3F), effectively storing the hexadecimal value. Control is then passed back to [NxtChr ($FFAD)](#nxtchr-ffad). This combination of [NxtChr ($FFAD)](#nxtchr-ffad) and `Dig` routines is essential for converting user-entered ASCII digits into numerical values.
+This entry point is part of the Monitor’s hex-scanning implementation. It converts one hexadecimal digit into a 4-bit value and shifts it into the 16-bit accumulator [A2L/A2H](#a2l-a2h) ($3E/$3F).
+
+`Dig` is reached from [NxtChr ($FFAD)](#nxtchr-ffad) after the input character has been transformed into a form suitable for range checks and decoding. `Dig` does **not** return to its caller with `RTS`; instead it continues with the shared digit-scan logic and then branches back into `NxtChr`.
+
+Because `Dig` only shifts into a 16-bit accumulator, supplying more than four digits while building a value naturally discards earlier (high) digits and retains only the most recent four.
 
 **Input:**
 
@@ -25,9 +29,9 @@ This routine converts an ASCII code representing a hexadecimal digit into its co
 
 **Side Effects:**
 
-*   Converts an ASCII hexadecimal digit to its numerical equivalent.
-*   Stores the result in [A2L/A2H](#a2l-a2h).
-*   Transfers control back to [NxtChr ($FFAD)](#nxtchr-ffad).
+*   Decodes a single digit and shifts it into [A2L/A2H](#a2l-a2h).
+*   When [MODE](#mode) is `$00`, each accepted digit also causes the current accumulated value in `A2` to be copied into `A1` and `A3` (i.e., `A1L/A1H` and `A3L/A3H` track the same value while scanning).
+*   Transfers control back into [NxtChr ($FFAD)](#nxtchr-ffad) rather than returning via `RTS`.
 
 **See also:**
 

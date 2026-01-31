@@ -2,7 +2,7 @@
 
 **Description:**
 
-This routine displays the contents of the microprocessor's registers and relevant system state information. It is primarily used by the Monitor for debugging and system inspection purposes. The displayed values typically include A, X, Y, and P registers.
+Displays the Monitor’s saved 6502 register state using the standard register display format (see [Standard register display format](#standard-register-display)).
 
 **Input:**
 
@@ -10,7 +10,8 @@ This routine displays the contents of the microprocessor's registers and relevan
     *   A: Undefined.
     *   X: Undefined.
     *   Y: Undefined.
-*   **Memory:** N/A (displays current state from CPU registers and system zero-page locations).
+*   **Memory:**
+    *   Uses the saved-register locations (for example, [A5H](#a5h), [XREG](#xreg), [YREG](#yreg), [STATUS](#status), [SPNT](#spnt)), which are commonly updated via [Save](#save-ff4a) and [Break](#break-fa4c).
 
 **Output:**
 
@@ -20,12 +21,16 @@ This routine displays the contents of the microprocessor's registers and relevan
     *   Y: Undefined.
     *   P: Undefined.
 *   **Memory:**
-    *   Screen: Displays the contents of the registers and system state information.
+    *   Output stream: prints the formatted register line.
 
 **Side Effects:**
 
-*   Outputs register and system state information to the screen.
+*   Outputs a leading carriage return and then a single formatted register line (see [Standard register display format](#standard-register-display)).
 
 **See also:**
 
-*   [Mon ($FF69)](#monz-ff69) (Monitor entry point)
+*   [Standard register display format](#standard-register-display)
+*   [REGZ](#regz-febf)
+*   [Save](#save-ff4a)
+*   [Restore](#restore-ff3f)
+*   [Break](#break-fa4c)
